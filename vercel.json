@@ -1,5 +1,6 @@
 {
   "outputDirectory": "public",
   "buildCommand": null,
-  "installCommand": null
+  "installCommand": null,
+  "cleanUrls": true
 }
