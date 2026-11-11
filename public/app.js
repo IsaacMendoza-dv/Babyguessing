@@ -8,7 +8,7 @@
 
   const parentsText = () => cfg.parents.join(` ${window.I18N[lang].and} `);
   const t = (key, vars = {}) =>
-    window.I18N[lang][key].replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : k === "parents" ? parentsText() : k === "mom" ? (cfg.mom || cfg.parents[0]) : `{${k}}`));
+    window.I18N[lang][key].replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : k === "parents" ? parentsText() : `{${k}}`));
   const locale = () => ({ es: "es-MX", en: "en-US", fil: "fil-PH" })[lang];
   const parse = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

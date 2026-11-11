@@ -1,7 +1,6 @@
 // Edita este archivo para configurar la quiniela / Edit this file to configure the pool.
 window.QUINIELA_CONFIG = {
   parents: ["Alexa", "Ryan"],
-  mom: "Alexa", // quien envía la foto del premio / who sends the prize photo
   // Rango de fechas (YYYY-MM-DD) / Selectable date range
   startDate: "2026-11-16",
   endDate: "2027-01-14",
