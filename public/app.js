@@ -23,6 +23,7 @@
     document.documentElement.lang = lang;
     ["title", "subtitle", "step1", "step2", "footer"].forEach((k) => ($(k).textContent = t(k)));
     $("legend").textContent = t("legend", { max: cfg.maxPerDate });
+    $("banner").alt = t("bannerAlt");
     $("viewCal").textContent = t("viewCal");
     $("viewList").textContent = t("viewList");
     $("dueLegend").textContent = t("dueLegend", { date: fmt(cfg.dueDate) });

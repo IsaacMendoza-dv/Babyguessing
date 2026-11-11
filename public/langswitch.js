@@ -3,15 +3,11 @@
 window.LangSwitch = (() => {
   const ORDER = ["en", "fil", "es"];
   const SHORT = { en: "EN", fil: "FIL", es: "ES" };
+  const FLAG = { en: "flags/us.svg", fil: "flags/ph.svg", es: "flags/mx.svg" };
 
   function init(root, { names, value, onChange }) {
     root.textContent = "";
     root.classList.add("lang-switch");
-
-    const globe = document.createElement("span");
-    globe.className = "globe";
-    globe.setAttribute("aria-hidden", "true");
-    globe.textContent = "🌐";
 
     const seg = document.createElement("div");
     seg.className = "seg";
@@ -32,7 +28,13 @@ window.LangSwitch = (() => {
       b.setAttribute("aria-label", names[code]);
       b.title = names[code];
       b.dataset.code = code;
-      b.textContent = SHORT[code];
+      const flag = document.createElement("img");
+      flag.className = "flag";
+      flag.src = FLAG[code];
+      flag.alt = "";
+      flag.width = 20;
+      flag.height = 20;
+      b.append(flag, document.createTextNode(SHORT[code]));
       seg.append(b);
       return b;
     });
@@ -64,7 +66,7 @@ window.LangSwitch = (() => {
       buttons[next].focus();
     });
 
-    root.append(globe, seg);
+    root.append(seg);
     set(value, false);
     return { set: (code) => set(code, false) };
   }

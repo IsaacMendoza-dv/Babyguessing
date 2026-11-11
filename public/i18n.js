@@ -21,6 +21,7 @@ window.I18N = {
     rule5: "🎯 Gana quien acierte el día exacto. Si varias personas eligieron ese día, ¡todas ganan!",
     rule6: "📸 Premio: ¡una foto exclusiva del bebé enviada por {parents}!",
     rulesOk: "¡Entendido, a jugar!",
+    bannerAlt: "Ilustración de {parents} esperando a su bebé frente a un arco de globos con el letrero We can Bearly wait",
     title: "¿Cuándo llegará el bebé?",
     subtitle: "Quiniela familiar • Elige la fecha en que crees que el bebé de {parents} hará su debut",
     step1: "1. Elige una fecha",
@@ -48,7 +49,7 @@ window.I18N = {
     errInvalid: "Revisa tus datos.",
     errGeneric: "Algo salió mal. Intenta de nuevo.",
     loading: "Cargando…",
-    footer: "Con cariño para {parents}"
+    footer: "Desarrollado con amor por Feli y Chayi 💙"
   },
   en: {
     langName: "English",
@@ -70,6 +71,7 @@ window.I18N = {
     rule5: "🎯 Guess the exact birth date to win. If several people picked it, they all win!",
     rule6: "📸 Prize: an exclusive photo of the baby, sent by {parents}!",
     rulesOk: "Got it, let's play!",
+    bannerAlt: "Illustration of {parents} expecting their baby in front of a balloon arch that reads We can Bearly wait",
     title: "When will baby boy arrive?",
     subtitle: "Family Guessing Game • Pick the date you think {parents}'s baby will make their debut",
     step1: "1. Pick a date",
@@ -97,7 +99,7 @@ window.I18N = {
     errInvalid: "Please check your details.",
     errGeneric: "Something went wrong. Please try again.",
     loading: "Loading…",
-    footer: "Made with love for {parents}"
+    footer: "Developed with love by Feli and Chayi 💙"
   },
   fil: {
     langName: "Filipino",
@@ -119,6 +121,7 @@ window.I18N = {
     rule5: "🎯 Hulaan ang eksaktong petsa ng kapanganakan para manalo. Kung marami ang pumili nito, panalo silang lahat!",
     rule6: "📸 Premyo: isang eksklusibong litrato ng baby, ipapadala nina {parents}!",
     rulesOk: "Sige, maglaro na tayo!",
+    bannerAlt: "Ilustrasyon nina {parents} na naghihintay sa kanilang baby sa harap ng arko ng mga lobo na may nakasulat na We can Bearly wait",
     title: "Kailan darating si baby boy?",
     subtitle: "Hulaan ng pamilya • Piliin ang petsang sa tingin mo ay isisilang ang baby nina {parents}",
     step1: "1. Pumili ng petsa",
@@ -146,6 +149,6 @@ window.I18N = {
     errInvalid: "Pakisuri ang iyong impormasyon.",
     errGeneric: "May nangyaring mali. Subukan muli.",
     loading: "Naglo-load…",
-    footer: "Gawa nang may pagmamahal para kina {parents}"
+    footer: "Binuo nang may pagmamahal nina Feli at Chayi 💙"
   }
 };
