@@ -103,8 +103,10 @@
     });
 
     const status = $("emailStatus");
-    status.className = "chip " + (data.emailConfigured ? "chip-ok" : "chip-warn");
-    status.textContent = data.emailConfigured ? t("emailOk", { from: data.from || "" }) : t("emailOff");
+    // Solo se muestra cuando los correos están listos; el aviso de "sin configurar" se oculta.
+    status.className = "chip chip-ok";
+    status.textContent = data.emailConfigured ? t("emailOk", { from: data.from || "" }) : "";
+    status.style.display = data.emailConfigured ? "" : "none";
 
     const list = $("allList");
     list.textContent = "";
