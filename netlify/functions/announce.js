@@ -69,6 +69,26 @@ exports.handler = async (event) => {
       return json(200, { guesses: await r.json(), emailConfigured: emailConfigured(), from: FROM_EMAIL || null });
     }
 
+    // ---- Pizarrón de mensajes (solo los papás) ----
+    const sbMessages = (query, opts = {}) =>
+      fetch(`${SUPABASE_URL}/rest/v1/messages?${query}`, {
+        ...opts,
+        headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`, ...(opts.headers || {}) }
+      });
+
+    if (action === "messages") {
+      const r = await sbMessages("select=id,name,message,color,lang,created_at&order=created_at.desc");
+      if (!r.ok) { console.error("supabase messages failed", r.status, await r.text()); return json(500, { code: "server" }); }
+      return json(200, { messages: await r.json() });
+    }
+
+    if (action === "deleteMessage") {
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(b.id || "")) return json(400, { code: "invalid" });
+      const r = await sbMessages(`id=eq.${b.id}`, { method: "DELETE" });
+      if (!r.ok) { console.error("supabase delete message failed", r.status, await r.text()); return json(500, { code: "server" }); }
+      return json(200, { ok: true });
+    }
+
     if (!/^\d{4}-\d{2}-\d{2}$/.test(b.birthDate || "") || Number.isNaN(Date.parse(b.birthDate))) return json(400, { code: "invalid" });
 
     const r = await sbGet(`select=name,email,lang&guess_date=eq.${b.birthDate}&order=created_at`);

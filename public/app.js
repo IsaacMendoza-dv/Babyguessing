@@ -29,8 +29,9 @@
     $("dueLegend").textContent = t("dueLegend", { date: fmt(cfg.dueDate) });
     $("rulesBtn").textContent = t("rulesBtn");
     $("rulesTitle").textContent = t("rulesTitle");
-    for (let i = 1; i <= 6; i++) $("rule" + i).textContent = t("rule" + i);
+    for (let i = 1; i <= 7; i++) $("rule" + i).textContent = t("rule" + i);
     $("rulesOk").textContent = t("rulesOk");
+    renderMessageTexts();
     if (selected && errs.date) showError("date", null);
     refreshErrors();
     $("nameLabel").textContent = t("name");
@@ -261,6 +262,9 @@
       if (r.ok) {
         setMsg(t("ok", { date: fmt(chosen) }), "ok");
         confetti();
+        localStorage.setItem("guessEmail", email);
+        localStorage.setItem("guessName", name);
+        setTimeout(openMessageDialog, 1100);
         $("form").reset();
         selected = null;
         ["name", "email", "date"].forEach((f) => showError(f, null));
@@ -284,6 +288,157 @@
     loadBoard();
   });
 
+  // ---- Message board (post-its) ----
+  let msgs = [];
+  let boardHidden = false;
+  let boardError = false;
+  let freshId = null;
+  const hasGuess = () => Boolean(localStorage.getItem("guessEmail"));
+  const hashId = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+
+  function postitEl(m, { fresh = false, delay = 0 } = {}) {
+    const el = mk("article", `postit ${m.color || "yellow"}` + (fresh ? " fresh" : ""));
+    el.style.setProperty("--r", `${(Math.abs(hashId(m.id)) % 7) - 3}deg`); // inclinacion entre -3 y 3 grados
+    if (delay) el.style.animationDelay = `${delay}ms`;
+    el.append(mk("p", "postit-text", m.message), mk("p", "postit-sign", `— ${m.name}`));
+    return el;
+  }
+
+  function renderMessages() {
+    const box = $("board"), empty = $("boardEmpty");
+    box.textContent = "";
+    if (boardHidden || boardError || !msgs.length) {
+      box.hidden = true;
+      empty.hidden = false;
+      empty.textContent = boardHidden ? t("boardHidden") : boardError ? t("boardLoadError") : t("boardEmpty");
+      return;
+    }
+    empty.hidden = true;
+    box.hidden = false;
+    msgs.forEach((m, i) => box.append(postitEl(m, { fresh: m.id === freshId, delay: Math.min(i * 60, 600) })));
+    box.classList.add("settled");
+  }
+
+  async function loadMessages() {
+    try {
+      const r = await fetch("/api/messages");
+      if (!r.ok) throw new Error("bad status");
+      const data = await r.json();
+      msgs = data.messages || [];
+      boardHidden = Boolean(data.hidden);
+      boardError = false;
+    } catch { msgs = []; boardError = true; }
+    renderMessages();
+  }
+
+  const msgDialog = $("msgDialog");
+  const COLOR_KEYS = { yellow: "colorYellow", pink: "colorPink", blue: "colorBlue", green: "colorGreen", orange: "colorOrange" };
+
+  function msgFieldError(field, key) {
+    const input = $(field === "text" ? "msgText" : "msgSign");
+    const el = $(field === "text" ? "msgTextError" : "msgSignError");
+    el.dataset.key = key || "";
+    el.textContent = key ? t(key) : "";
+    el.hidden = !key;
+    if (key) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid");
+  }
+
+  function setMsgFormMessage(key, kind) {
+    const el = $("msgFormMsg");
+    el.textContent = key ? t(key) : "";
+    el.className = "admin-msg" + (kind ? ` ${kind}` : "");
+  }
+
+  function updatePreview() {
+    const color = document.querySelector('input[name="msgColor"]:checked').value;
+    $("msgPreview").className = `postit ${color}`;
+    $("msgPreviewText").textContent = $("msgText").value.trim() || t("msgPlaceholder");
+    $("msgPreviewSign").textContent = `— ${$("msgSign").value.trim() || "…"}`;
+    $("msgCount").textContent = `${$("msgText").value.length} / 280`;
+  }
+
+  function openMessageDialog() {
+    if (!$("msgSign").value) $("msgSign").value = localStorage.getItem("guessName") || "";
+    msgFieldError("text", null);
+    msgFieldError("sign", null);
+    setMsgFormMessage(null);
+    updatePreview();
+    if (!msgDialog.open) msgDialog.showModal();
+  }
+
+  $("leaveMsg").addEventListener("click", () => {
+    if (hasGuess()) { openMessageDialog(); return; }
+    const note = $("boardNote");
+    note.className = "admin-msg err";
+    note.textContent = t("msgLocked");
+    $("formSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("msgLater").addEventListener("click", () => msgDialog.close());
+  msgDialog.addEventListener("click", (e) => { if (e.target === msgDialog) msgDialog.close(); }); // clic fuera = cerrar
+
+  $("msgText").addEventListener("input", () => { if ($("msgText").value.trim()) msgFieldError("text", null); updatePreview(); });
+  $("msgSign").addEventListener("input", () => { if ($("msgSign").value.trim()) msgFieldError("sign", null); updatePreview(); });
+  document.querySelectorAll('input[name="msgColor"]').forEach((r) => r.addEventListener("change", updatePreview));
+
+  $("msgForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setMsgFormMessage(null);
+    const message = $("msgText").value.trim(), sign = $("msgSign").value.trim();
+    msgFieldError("text", message ? null : "msgErrText");
+    msgFieldError("sign", sign ? null : "msgErrSign");
+    if (!message || !sign) { $(message ? "msgSign" : "msgText").focus(); return; }
+
+    const email = localStorage.getItem("guessEmail");
+    if (!email) { setMsgFormMessage("msgLocked", "err"); return; }
+
+    $("msgSend").disabled = true;
+    try {
+      const color = document.querySelector('input[name="msgColor"]:checked').value;
+      const r = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name: sign, message, color, lang })
+      });
+      const data = await r.json().catch(() => ({}));
+      if (r.ok) {
+        localStorage.setItem("guessName", sign);
+        if (!boardHidden && data.message) { msgs.unshift(data.message); freshId = data.message.id; boardError = false; }
+        $("msgText").value = "";
+        msgDialog.close();
+        renderMessages();
+        const note = $("boardNote");
+        note.className = "admin-msg ok";
+        note.textContent = boardHidden ? t("msgThanksHidden") : t("msgThanks");
+        $("boardSection").scrollIntoView({ behavior: "smooth", block: "start" });
+        confetti();
+      } else if (r.status === 403) {
+        localStorage.removeItem("guessEmail");
+        setMsgFormMessage("msgErrNoGuess", "err");
+      } else if (r.status === 429) setMsgFormMessage("msgErrLimit", "err");
+      else if (data.code === "invalid" && data.field === "message") msgFieldError("text", "msgErrText");
+      else if (data.code === "invalid" && data.field === "name") msgFieldError("sign", "msgErrSign");
+      else setMsgFormMessage("errGeneric", "err");
+    } catch { setMsgFormMessage("errNetwork", "err"); }
+    $("msgSend").disabled = false;
+  });
+
+  function renderMessageTexts() {
+    $("boardTitle").textContent = t("boardTitle");
+    $("boardIntro").textContent = t("boardIntro");
+    $("leaveMsg").textContent = t("msgLeave");
+    $("msgDialogTitle").textContent = t("msgDialogTitle");
+    $("msgDialogSub").textContent = t("msgDialogSub");
+    $("msgTextLabel").textContent = t("msgTextLabel");
+    $("msgText").placeholder = t("msgPlaceholder");
+    $("msgSignLabel").textContent = t("msgSignLabel");
+    $("msgColorLabel").textContent = t("msgColorLabel");
+    $("msgSend").textContent = t("msgSend");
+    $("msgLater").textContent = t("msgLater");
+    document.querySelectorAll('input[name="msgColor"]').forEach((r) => r.setAttribute("aria-label", t(COLOR_KEYS[r.value])));
+    ["text", "sign"].forEach((f) => { const el = $(f === "text" ? "msgTextError" : "msgSignError"); if (!el.hidden && el.dataset.key) el.textContent = t(el.dataset.key); });
+    updatePreview();
+  }
+
   let formVisible = false;
   $("barGo").addEventListener("click", () => {
     $("formSection").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -300,7 +455,7 @@
     onChange: (code) => {
       lang = code;
       localStorage.setItem("lang", lang);
-      renderTableHead(); renderText(); renderBoard();
+      renderTableHead(); renderText(); renderBoard(); renderMessages();
     }
   });
 
@@ -329,7 +484,7 @@
     lang = b.dataset.code;
     localStorage.setItem("lang", lang);
     switcher.set(lang);
-    renderTableHead(); renderText(); renderBoard();
+    renderTableHead(); renderText(); renderBoard(); renderMessages();
     welcome.classList.add("leaving");
     setTimeout(() => {
       document.documentElement.classList.remove("no-lang");
@@ -337,7 +492,7 @@
       setInert(false);
       window.scrollTo(0, 0);
       // Las reglas salen solo la primera vez; después están en el botón "Reglas".
-      if (!localStorage.getItem("rulesSeen")) { localStorage.setItem("rulesSeen", "1"); openRules(); }
+      openRules();
     }, 450);
   });
 
@@ -350,4 +505,5 @@
   renderText();
   renderBoard();
   loadBoard();
+  loadMessages();
 })();

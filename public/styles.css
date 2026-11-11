@@ -344,3 +344,71 @@ input[aria-invalid="true"]:focus { border-color:var(--err); box-shadow:0 0 0 4px
 #msg.error { padding:.5rem .8rem; background:#fff0f2; border:1px solid #f3b6c0; border-radius:12px; }
 #msg:empty { padding:0; border:0; background:none; }
 @media (prefers-reduced-motion: reduce) { input[aria-invalid="true"], .needs-date, .field-error { animation:none !important; } }
+
+/* ---------- Message board (cork board + post-its) ---------- */
+.board { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1.5rem 1.2rem; padding:1.7rem 1.2rem 1.4rem; margin:.5rem 0 1rem;
+  border:10px solid #a9743f; border-radius:18px; background-color:#d9aa6e;
+  background-image: radial-gradient(rgba(110,64,20,.22) 1px, transparent 1.6px), radial-gradient(rgba(255,255,255,.16) 1px, transparent 1.6px), radial-gradient(rgba(90,50,10,.12) 2px, transparent 2.6px);
+  background-size:13px 13px, 21px 21px, 33px 33px; background-position:0 0, 6px 9px, 14px 4px;
+  box-shadow: inset 0 3px 12px rgba(0,0,0,.28), 0 8px 22px rgba(60,35,10,.25); }
+.board[hidden] { display:none; }
+.board-empty { margin:.5rem 0 1rem; padding:1.2rem; text-align:center; font-weight:700; color:var(--muted); background:#f6f9ff; border:2px dashed #cfd7ee; border-radius:16px; }
+.board-empty[hidden] { display:none; }
+
+.postit { position:relative; margin:0; padding:1.5rem 1rem .9rem; min-height:150px; display:flex; flex-direction:column; gap:.6rem;
+  color:#2b2b3a; font-family:"Caveat","Comic Sans MS",cursive; background:#fff59d; border-radius:2px 2px 18px 2px; box-shadow:2px 7px 12px rgba(0,0,0,.28);
+  transform:rotate(var(--r,0deg)); transform-origin:50% 0; opacity:0; animation: postDrop .6s cubic-bezier(.34,1.4,.64,1) both; transition: transform .2s, box-shadow .2s; }
+.postit::before { content:""; position:absolute; top:-12px; left:50%; width:58px; height:22px; transform:translateX(-50%) rotate(-3deg);
+  background:rgba(255,255,255,.62); box-shadow:0 1px 3px rgba(0,0,0,.18); }
+.postit-text { margin:0; flex:1; font-size:1.45rem; line-height:1.15; white-space:pre-wrap; overflow-wrap:anywhere; }
+.postit-sign { margin:0; font-size:1.35rem; font-weight:700; text-align:right; overflow-wrap:anywhere; }
+.postit.yellow { background:#fff59d; } .postit.pink { background:#ffc1d9; } .postit.blue { background:#b9dcff; }
+.postit.green { background:#c8f0b8; } .postit.orange { background:#ffd0a1; }
+@media (hover:hover) { .postit:hover { transform:rotate(0deg) scale(1.04); z-index:2; box-shadow:4px 12px 20px rgba(0,0,0,.35); } }
+.board.settled .postit:not(.fresh) { animation:none; opacity:1; }
+.postit.fresh { animation: postDrop .8s cubic-bezier(.34,1.4,.64,1) both, freshGlow 2.4s ease .8s 1; }
+@keyframes postDrop { from { opacity:0; transform:translateY(-34px) rotate(calc(var(--r,0deg) + 9deg)) scale(1.12); } to { opacity:1; transform:rotate(var(--r,0deg)); } }
+@keyframes freshGlow { 0%,100% { filter:none; } 50% { filter:brightness(1.08) drop-shadow(0 0 10px rgba(255,255,255,.95)); } }
+.leave-btn { width:100%; min-height:52px; font-size:1.05rem; margin-top:.25rem; }
+
+/* ---------- Message dialog ---------- */
+dialog.msg-dialog { width:min(94vw,480px); max-height:92dvh; overflow-y:auto; padding:1.25rem; animation: dialogIn .35s cubic-bezier(.34,1.3,.64,1) both; }
+dialog.msg-dialog h3 { font-size:1.5rem; margin:0 0 .25rem; text-align:center; }
+dialog.msg-dialog .muted { text-align:center; margin:0 0 .25rem; }
+.postit-preview { display:flex; justify-content:center; margin:1.1rem 0 .5rem; padding:1.2rem 0 .8rem; border-radius:14px;
+  background-color:#d9aa6e; background-image: radial-gradient(rgba(110,64,20,.22) 1px, transparent 1.6px); background-size:13px 13px; box-shadow: inset 0 2px 8px rgba(0,0,0,.25); }
+.postit-preview .postit { width:min(78%,230px); min-height:120px; animation:none; opacity:1; }
+textarea { width:100%; min-height:110px; padding:.65rem .8rem; border:2px solid #cfd7ee; border-radius:12px; font-family:inherit; font-size:1rem; line-height:1.4; background:#fff; resize:vertical;
+  transition: border-color .2s, box-shadow .2s; }
+textarea:focus { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,124,255,.18); outline:none; }
+textarea[aria-invalid="true"] { border-color:var(--err); background:#fff6f7; box-shadow:0 0 0 3px rgba(176,0,32,.14); }
+.msg-count { margin:.2rem 0 0; text-align:right; font-size:.8rem; color:var(--muted); }
+.colors { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:.9rem 0 0; padding:0; border:0; }
+.colors legend { width:100%; margin:0 0 .4rem; padding:0; font-weight:600; }
+.swatch { position:relative; display:inline-block; margin:0; cursor:pointer; }
+.swatch input { position:absolute; inset:0; width:100%; height:100%; margin:0; padding:0; opacity:0; cursor:pointer; }
+.swatch span { display:block; width:42px; height:42px; border-radius:10px; border:3px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.2), 0 3px 6px rgba(0,0,0,.2); transition: transform .15s, box-shadow .15s; }
+.swatch input:checked + span { box-shadow:0 0 0 3px var(--accent2), 0 3px 8px rgba(0,0,0,.25); transform:scale(1.1); }
+.swatch input:focus-visible + span { outline:3px solid #ff9f1c; outline-offset:2px; }
+.swatch.yellow span { background:#fff59d; } .swatch.pink span { background:#ffc1d9; } .swatch.blue span { background:#b9dcff; }
+.swatch.green span { background:#c8f0b8; } .swatch.orange span { background:#ffd0a1; }
+.msg-dialog .dialog-actions { align-items:stretch; }
+.msg-dialog .dialog-actions button { margin:0; width:auto; flex:1; }
+.msg-dialog .dialog-actions button[type=submit] { flex:1.6; }
+
+@media (max-width:640px) {
+  .board { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.4rem .8rem; padding:1.4rem .7rem 1rem; border-width:8px; }
+  .postit { padding:1.4rem .75rem .75rem; min-height:130px; }
+  .postit-text { font-size:1.3rem; }
+  .postit-sign { font-size:1.2rem; }
+  .msg-dialog .dialog-actions { flex-direction:column-reverse; }
+  .msg-dialog .dialog-actions button, .msg-dialog .dialog-actions button[type=submit] { width:100%; flex:none; }
+}
+@media (prefers-reduced-motion: reduce) { .postit, .postit.fresh { animation:none !important; opacity:1; } }
+
+/* ---------- Admin: delete on post-its ---------- */
+.postit-date { margin:0; text-align:right; font-family:var(--font-body); font-size:.72rem; font-weight:700; opacity:.65; }
+.postit-del { align-self:flex-start; margin-top:.15rem; min-height:32px; padding:0 .65rem; border:1px solid rgba(0,0,0,.28); border-radius:999px;
+  background:rgba(255,255,255,.78); color:#5a1020; font-family:var(--font-body); font-size:.75rem; font-weight:700; cursor:pointer; }
+.postit-del.armed { background:var(--err); border-color:var(--err); color:#fff; }
+.postit-del:disabled { opacity:.6; cursor:wait; }

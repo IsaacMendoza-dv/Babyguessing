@@ -16,7 +16,8 @@
       allSent: "Listo: {sent} de {total} correos enviados.", someFailed: "Se enviaron {sent} de {total}. Revisa los errores abajo.",
       notConfigured: "El envío de correos no está configurado todavía. Agrega RESEND_API_KEY y FROM_EMAIL en Vercel y redespliega.",
       sandboxHint: "Si usas Resend sin dominio propio, solo puede enviar al correo con el que creaste tu cuenta de Resend.",
-      all: "Todas las apuestas", csv: "Descargar CSV", empty: "Aún no hay apuestas.", spots: "{n}/{max} lugares"
+      all: "Todas las apuestas", csv: "Descargar CSV", empty: "Aún no hay apuestas.", spots: "{n}/{max} lugares",
+      msgsTitle: "💌 Mensajes para los papás", msgsEmpty: "Aún no hay mensajes.", msgsCsv: "Descargar mensajes (CSV)", del: "Borrar", delConfirm: "¿Seguro?"
     },
     en: {
       langName: "English", title: "Admin panel", subtitle: "See how the pool is going and notify the winners",
@@ -31,7 +32,8 @@
       allSent: "Done: {sent} of {total} emails sent.", someFailed: "{sent} of {total} sent. Check the errors below.",
       notConfigured: "Email sending is not set up yet. Add RESEND_API_KEY and FROM_EMAIL in Vercel and redeploy.",
       sandboxHint: "With Resend and no custom domain, it can only send to the email you used to sign up for Resend.",
-      all: "All guesses", csv: "Download CSV", empty: "No guesses yet.", spots: "{n}/{max} spots"
+      all: "All guesses", csv: "Download CSV", empty: "No guesses yet.", spots: "{n}/{max} spots",
+      msgsTitle: "💌 Messages for the parents", msgsEmpty: "No messages yet.", msgsCsv: "Download messages (CSV)", del: "Delete", delConfirm: "Sure?"
     },
     fil: {
       langName: "Filipino", title: "Admin panel", subtitle: "Tingnan ang takbo ng hulaan at abisuhan ang mga nanalo",
@@ -46,7 +48,8 @@
       allSent: "Tapos na: {sent} sa {total} email ang naipadala.", someFailed: "{sent} sa {total} ang naipadala. Tingnan ang mga error sa ibaba.",
       notConfigured: "Hindi pa naka-set up ang pagpapadala ng email. Idagdag ang RESEND_API_KEY at FROM_EMAIL sa Vercel at i-redeploy.",
       sandboxHint: "Kung walang sariling domain sa Resend, sa email lang na ginamit mo sa pag-sign up ito makakapagpadala.",
-      all: "Lahat ng hula", csv: "I-download ang CSV", empty: "Wala pang hula.", spots: "{n}/{max} na lugar"
+      all: "Lahat ng hula", csv: "I-download ang CSV", empty: "Wala pang hula.", spots: "{n}/{max} na lugar",
+      msgsTitle: "💌 Mga mensahe para sa mga magulang", msgsEmpty: "Wala pang mensahe.", msgsCsv: "I-download ang mga mensahe (CSV)", del: "Burahin", delConfirm: "Sigurado ka?"
     }
   };
 
@@ -82,6 +85,8 @@
     $("search").textContent = t("search");
     $("allTitle").textContent = t("all");
     $("csv").textContent = t("csv");
+    $("msgsTitle").textContent = t("msgsTitle");
+    $("msgsCsv").textContent = t("msgsCsv");
     $("confirmTitle").textContent = t("confirmTitle");
     $("cancel").textContent = t("cancel");
     $("ok").textContent = t("confirm");
@@ -228,6 +233,7 @@
       msg.textContent = "";
       showDash(true);
       renderDashboard();
+      loadAdminMessages();
     } else {
       msg.className = "admin-msg err";
       msg.textContent = res === "unauthorized" ? t("badToken") : t("generic");
@@ -236,8 +242,9 @@
 
   $("logout").addEventListener("click", () => {
     sessionStorage.removeItem("adminToken");
-    token = ""; data = null; pending = null;
+    token = ""; data = null; pending = null; adminMsgs = [];
     $("winnersOut").textContent = "";
+    $("adminBoard").textContent = "";
     showDash(false);
   });
 
@@ -254,6 +261,61 @@
   $("confirm").addEventListener("close", () => { if ($("confirm").returnValue === "ok") doSend(); });
   $("csv").addEventListener("click", downloadCsv);
 
+  // ---- Mensajes de amor (pizarron de los papas) ----
+  let adminMsgs = [];
+  const hashId = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+
+  async function loadAdminMessages() {
+    const { status, json } = await api({ action: "messages" });
+    adminMsgs = status === 200 ? json.messages || [] : [];
+    renderAdminMessages();
+  }
+
+  function renderAdminMessages() {
+    const box = $("adminBoard"), empty = $("msgsEmpty");
+    box.textContent = "";
+    empty.textContent = t("msgsEmpty");
+    empty.hidden = adminMsgs.length > 0;
+    box.hidden = adminMsgs.length === 0;
+    $("msgsCsv").disabled = adminMsgs.length === 0;
+    adminMsgs.forEach((m) => {
+      const note = el("article", `postit ${m.color || "yellow"}`);
+      note.style.setProperty("--r", `${(Math.abs(hashId(m.id)) % 7) - 3}deg`);
+      note.append(
+        el("p", "postit-text", m.message),
+        el("p", "postit-sign", `— ${m.name}`),
+        el("p", "postit-date", new Date(m.created_at).toLocaleDateString(locale(), { dateStyle: "medium" }))
+      );
+      const del = el("button", "postit-del", t("del"));
+      del.type = "button";
+      del.addEventListener("click", async () => {
+        if (!del.dataset.armed) { // primer clic: pedir confirmacion
+          del.dataset.armed = "1";
+          del.textContent = t("delConfirm");
+          del.classList.add("armed");
+          setTimeout(() => { if (del.isConnected) { delete del.dataset.armed; del.textContent = t("del"); del.classList.remove("armed"); } }, 4000);
+          return;
+        }
+        del.disabled = true;
+        const { status } = await api({ action: "deleteMessage", id: m.id });
+        if (status === 200) { adminMsgs = adminMsgs.filter((x) => x.id !== m.id); renderAdminMessages(); }
+        else { del.disabled = false; del.textContent = t("generic"); }
+      });
+      note.append(del);
+      box.append(note);
+    });
+  }
+
+  $("msgsCsv").addEventListener("click", () => {
+    const rows = [["date", "name", "message", "color", "language"], ...adminMsgs.map((m) => [m.created_at, m.name, m.message, m.color, m.lang])];
+    const blob = new Blob(["\ufeff" + rows.map((r) => r.map(csvCell).join(",")).join("\r\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "mensajes.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
   const names = Object.fromEntries(Object.entries(TXT).map(([code, v]) => [code, v.langName]));
   LangSwitch.init($("lang"), {
     names, value: lang,
@@ -262,6 +324,7 @@
       localStorage.setItem("lang", lang);
       renderStatic();
       renderDashboard();
+      renderAdminMessages();
       if (pending) showWinners(pending.date, pending.winners);
     }
   });
@@ -269,7 +332,7 @@
   renderStatic();
   if (token) {
     loadList().then((res) => {
-      if (res === "ok") { showDash(true); renderDashboard(); }
+      if (res === "ok") { showDash(true); renderDashboard(); loadAdminMessages(); }
       else { sessionStorage.removeItem("adminToken"); token = ""; showDash(false); }
     });
   }
