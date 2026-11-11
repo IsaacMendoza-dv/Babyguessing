@@ -51,7 +51,7 @@
   };
 
   let lang = localStorage.getItem("lang");
-  if (!TXT[lang]) lang = "es";
+  if (!TXT[lang]) lang = "en";
   let token = sessionStorage.getItem("adminToken") || "";
   let data = null; // respuesta de "list"
   let pending = null; // { date, winners }

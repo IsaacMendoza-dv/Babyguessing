@@ -6,5 +6,5 @@ window.QUINIELA_CONFIG = {
   endDate: "2026-12-31",
   dueDate: "2026-12-22", // Fecha probable de parto / Due date
   maxPerDate: 3, // Debe coincidir con el trigger en supabase/schema.sql
-  defaultLang: "es"
+  defaultLang: "en"
 };
