@@ -199,12 +199,13 @@ dialog h3 { margin:0 0 .5rem; font-family:var(--font-display); }
 header { position:relative; }
 .lang-switch { position:absolute; top:1rem; right:1rem; z-index:5; display:flex; align-items:center; gap:.35rem; min-height:44px; padding:0 .4rem 0 .85rem;
   background:#fff; border:2px solid #cfd7ee; border-radius:999px; box-shadow:0 4px 14px rgba(79,124,255,.18); transition: border-color .2s, box-shadow .2s; }
-.lang-switch:focus-within { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,124,255,.18); }
+.lang-switch:focus-within { border-color:var(--accent); box-shadow:0 0 0 4px rgba(79,124,255,.22); }
 .lang-switch select { width:auto; min-height:40px; border:0; background:transparent; box-shadow:none; transform:none; border-radius:999px;
   padding:0 1.6rem 0 .1rem; font-family:var(--font-display); font-weight:500; font-size:1rem; color:var(--ink); cursor:pointer; -webkit-appearance:none; appearance:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%234f7cff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat:no-repeat; background-position:right .55rem center; }
-.lang-switch select:focus { outline:none; box-shadow:none; transform:none; }
-.lang-switch select:focus-visible { outline:3px solid #ff9f1c; outline-offset:2px; }
+.lang-switch select:focus, .lang-switch select:focus-visible { outline:none; box-shadow:none; transform:none; }
+
+.lang-switch select option { font-family:var(--font-body); font-size:1rem; font-weight:600; color:#27304a; background:#fff; }
 header { padding-top:4.2rem; }
 @media (max-width:640px) { header { padding-top:calc(3.6rem + env(safe-area-inset-top)); } }
