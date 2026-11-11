@@ -8,7 +8,7 @@
 
   const parentsText = () => cfg.parents.join(` ${window.I18N[lang].and} `);
   const t = (key, vars = {}) =>
-    window.I18N[lang][key].replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : k === "parents" ? parentsText() : `{${k}}`));
+    window.I18N[lang][key].replace(/\{(\w+)\}/g, (_, k) => (k in vars ? vars[k] : k === "parents" ? parentsText() : k === "mom" ? (cfg.mom || cfg.parents[0]) : `{${k}}`));
   const locale = () => ({ es: "es-MX", en: "en-US", fil: "fil-PH" })[lang];
   const parse = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
   const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -25,6 +25,11 @@
     $("legend").textContent = t("legend", { max: cfg.maxPerDate });
     $("viewCal").textContent = t("viewCal");
     $("viewList").textContent = t("viewList");
+    $("dueLegend").textContent = t("dueLegend", { date: fmt(cfg.dueDate) });
+    $("rulesBtn").textContent = t("rulesBtn");
+    $("rulesTitle").textContent = t("rulesTitle");
+    for (let i = 1; i <= 6; i++) $("rule" + i).textContent = t("rule" + i);
+    $("rulesOk").textContent = t("rulesOk");
     $("nameLabel").textContent = t("name");
     $("emailLabel").textContent = t("email");
     $("submit").textContent = t("submit");
@@ -127,6 +132,7 @@
     const names = (board[detailDate] || []).map((g) => g.name);
     const head = mk("div", "cal-detail-head");
     head.append(mk("strong", null, t("calWho", { date: fmt(detailDate) })));
+    if (detailDate === cfg.dueDate) head.append(mk("span", "chip chip-due", "🍼 " + t("dueDate")));
     head.append(mk("span", "chip" + (names.length >= cfg.maxPerDate ? " chip-warn" : ""), names.length >= cfg.maxPerDate ? t("full") : t("calOf", { n: names.length, max: cfg.maxPerDate })));
     box.append(head);
     if (!names.length) { box.append(mk("p", "muted", t("calNobody"))); return; }
@@ -235,6 +241,12 @@
     }
   });
 
+  // ---- Rules pop-up ----
+  const rules = $("rules");
+  function openRules() { if (!rules.open) rules.showModal(); }
+  $("rulesBtn").addEventListener("click", openRules);
+  rules.addEventListener("click", (e) => { if (e.target === rules) rules.close(); }); // clic fuera = cerrar
+
   // ---- Welcome screen (first visit): pick a language before anything else ----
   const welcome = $("welcome");
   const pageParts = ["header", "main", "footer"].map((s) => document.querySelector(s));
@@ -258,6 +270,7 @@
       welcome.classList.remove("leaving");
       setInert(false);
       window.scrollTo(0, 0);
+      openRules();
     }, 450);
   });
 

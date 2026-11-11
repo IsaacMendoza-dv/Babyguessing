@@ -59,9 +59,13 @@
     <section>
       <h2 id="step1"></h2>
       <p id="legend" class="muted"></p>
-      <div class="view-toggle" role="group" aria-label="View">
-        <button type="button" id="viewCal" aria-pressed="true"></button>
-        <button type="button" id="viewList" aria-pressed="false"></button>
+      <p id="dueLegend" class="due-legend"></p>
+      <div class="view-row">
+        <div class="view-toggle" role="group" aria-label="View">
+          <button type="button" id="viewCal" aria-pressed="true"></button>
+          <button type="button" id="viewList" aria-pressed="false"></button>
+        </div>
+        <button type="button" class="btn-ghost" id="rulesBtn"></button>
       </div>
       <div id="calendar">
         <div id="calGrid"></div>
@@ -91,6 +95,13 @@
     </section>
   </main>
   <footer id="footer"></footer>
+  <dialog id="rules" class="rules" aria-labelledby="rulesTitle">
+    <h3 id="rulesTitle"></h3>
+    <ul class="rules-list">
+      <li id="rule1"></li><li id="rule2"></li><li id="rule3"></li><li id="rule4"></li><li id="rule5"></li><li id="rule6" class="prize"></li>
+    </ul>
+    <form method="dialog"><button class="btn-primary" id="rulesOk"></button></form>
+  </dialog>
   <div class="bar" id="bar" hidden>
     <span id="barText"></span>
     <button type="button" id="barGo"></button>
