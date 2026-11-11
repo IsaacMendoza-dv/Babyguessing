@@ -148,13 +148,39 @@
   }
 
   const names = Object.fromEntries(Object.entries(window.I18N).map(([code, v]) => [code, v.langName]));
-  LangSwitch.init($("lang"), {
+  const switcher = LangSwitch.init($("lang"), {
     names, value: lang,
     onChange: (code) => {
       lang = code;
       localStorage.setItem("lang", lang);
       renderTableHead(); renderText(); renderBoard();
     }
+  });
+
+  // ---- Welcome screen (first visit): pick a language before anything else ----
+  const welcome = $("welcome");
+  const pageParts = ["header", "main", "footer"].map((s) => document.querySelector(s));
+  const setInert = (on) => pageParts.forEach((p) => p && (on ? p.setAttribute("inert", "") : p.removeAttribute("inert")));
+
+  if (document.documentElement.classList.contains("no-lang")) {
+    setInert(true);
+    welcome.querySelector(".choice").focus({ preventScroll: true });
+  }
+
+  welcome.addEventListener("click", (e) => {
+    const b = e.target.closest(".choice");
+    if (!b) return;
+    lang = b.dataset.code;
+    localStorage.setItem("lang", lang);
+    switcher.set(lang);
+    renderTableHead(); renderText(); renderBoard();
+    welcome.classList.add("leaving");
+    setTimeout(() => {
+      document.documentElement.classList.remove("no-lang");
+      welcome.classList.remove("leaving");
+      setInert(false);
+      window.scrollTo(0, 0);
+    }, 450);
   });
 
   function renderTableHead() {

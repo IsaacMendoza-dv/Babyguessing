@@ -28,9 +28,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <script>try{if(!localStorage.getItem("lang")||/[?&]welcome\b/.test(location.search))document.documentElement.classList.add("no-lang")}catch(e){}</script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="floaters" aria-hidden="true"><span>🎈</span><span>⭐</span><span>🧸</span><span>🎈</span><span>🧸</span><span>⭐</span></div>
+    <div class="welcome-card">
+      <div class="baby" aria-hidden="true">🍼</div>
+      <h2 id="welcomeTitle">Welcome!</h2>
+      <p class="welcome-sub">Maligayang pagdating • ¡Bienvenidos!</p>
+      <p class="welcome-ask">Choose your language<br><span>Piliin ang iyong wika • Elige tu idioma</span></p>
+      <div class="choices">
+        <button type="button" class="choice" data-code="en" lang="en"><strong>English</strong><span>Let's play!</span></button>
+        <button type="button" class="choice" data-code="fil" lang="fil"><strong>Filipino</strong><span>Maglaro tayo!</span></button>
+        <button type="button" class="choice" data-code="es" lang="es"><strong>Español</strong><span>¡A jugar!</span></button>
+      </div>
+    </div>
+  </div>
   <div class="floaters" aria-hidden="true"><span>🎈</span><span>⭐</span><span>🧸</span><span>🎈</span><span>🧸</span><span>⭐</span></div>
   <canvas id="confetti" aria-hidden="true"></canvas>
   <header>
