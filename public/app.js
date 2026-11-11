@@ -250,12 +250,15 @@
 
   // ---- Welcome screen (first visit): pick a language before anything else ----
   const welcome = $("welcome");
-  const pageParts = ["header", "main", "footer"].map((s) => document.querySelector(s));
+  const pageParts = [".hero", "header", "main", "footer"].map((s) => document.querySelector(s));
   const setInert = (on) => pageParts.forEach((p) => p && (on ? p.setAttribute("inert", "") : p.removeAttribute("inert")));
 
   if (document.documentElement.classList.contains("no-lang")) {
     setInert(true);
-    welcome.querySelector(".choice").focus({ preventScroll: true });
+    // Si ya había elegido un idioma antes, lo marcamos como "último usado" y le damos el foco.
+    const lastChoice = welcome.querySelector(`.choice[data-code="${localStorage.getItem("lang")}"]`);
+    if (lastChoice) lastChoice.classList.add("last");
+    (lastChoice || welcome.querySelector(".choice")).focus({ preventScroll: true });
   }
 
   welcome.addEventListener("click", (e) => {
@@ -271,7 +274,8 @@
       welcome.classList.remove("leaving");
       setInert(false);
       window.scrollTo(0, 0);
-      openRules();
+      // Las reglas salen solo la primera vez; después están en el botón "Reglas".
+      if (!localStorage.getItem("rulesSeen")) { localStorage.setItem("rulesSeen", "1"); openRules(); }
     }, 450);
   });
 

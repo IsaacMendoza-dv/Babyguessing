@@ -28,14 +28,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-  <script>try{if(!localStorage.getItem("lang")||/[?&]welcome\b/.test(location.search))document.documentElement.classList.add("no-lang")}catch(e){}</script>
+  <script>
+    // La pantalla de idioma sale SIEMPRE al entrar. Un enlace con ?lang=en|fil|es la salta (útil para compartir en un idioma).
+    try {
+      var m = location.search.match(/[?&]lang=(en|fil|es)\b/);
+      if (m) localStorage.setItem("lang", m[1]); else document.documentElement.classList.add("no-lang");
+    } catch (e) { document.documentElement.classList.add("no-lang"); }
+  </script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
     <div class="floaters" aria-hidden="true"><span>🎈</span><span>⭐</span><span>🧸</span><span>🎈</span><span>🧸</span><span>⭐</span></div>
     <div class="welcome-card">
-      <div class="baby" aria-hidden="true">🍼</div>
+      <img class="welcome-hero" src="banner.jpg" width="1200" height="800" alt="">
       <h2 id="welcomeTitle">Welcome!</h2>
       <p class="welcome-sub">Maligayang pagdating • ¡Bienvenidos!</p>
       <p class="welcome-ask">Choose your language<br><span>Piliin ang iyong wika • Elige tu idioma</span></p>
