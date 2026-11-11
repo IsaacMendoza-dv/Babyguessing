@@ -23,6 +23,8 @@
     document.documentElement.lang = lang;
     ["title", "subtitle", "step1", "step2", "footer"].forEach((k) => ($(k).textContent = t(k)));
     $("legend").textContent = t("legend", { max: cfg.maxPerDate });
+    $("viewCal").textContent = t("viewCal");
+    $("viewList").textContent = t("viewList");
     $("nameLabel").textContent = t("name");
     $("emailLabel").textContent = t("email");
     $("submit").textContent = t("submit");
@@ -60,7 +62,83 @@
       if (++frames < 150) requestAnimationFrame(tick); else ctx.clearRect(0, 0, cv.width, cv.height);
     })();
   }
-  function renderBoard() {
+  function renderBoard() { renderList(); renderCalendar(); }
+
+  // ---- Calendar view ----
+  let view = "cal";
+  let detailDate = null;
+  const mk = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+  function applyView() {
+    $("calendar").hidden = view !== "cal";
+    $("listView").hidden = view !== "list";
+    $("viewCal").setAttribute("aria-pressed", String(view === "cal"));
+    $("viewList").setAttribute("aria-pressed", String(view === "list"));
+  }
+
+  function renderCalendar() {
+    const root = $("calGrid");
+    root.textContent = "";
+    const start = parse(cfg.startDate), end = parse(cfg.endDate);
+    const dows = [...Array(7)].map((_, i) => new Date(2023, 0, 1 + i).toLocaleDateString(locale(), { weekday: "narrow" }));
+    for (let m = new Date(start.getFullYear(), start.getMonth(), 1); m <= end; m = new Date(m.getFullYear(), m.getMonth() + 1, 1)) {
+      const wrap = mk("div", "cal-month");
+      wrap.append(mk("h3", "cal-title", cap(m.toLocaleDateString(locale(), { month: "long", year: "numeric" }))));
+      const grid = mk("div", "cal-grid");
+      dows.forEach((d) => grid.append(mk("div", "cal-dow", d)));
+      for (let i = 0; i < m.getDay(); i++) grid.append(mk("div"));
+      const last = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+      for (let day = 1; day <= last; day++) {
+        const date = new Date(m.getFullYear(), m.getMonth(), day);
+        if (date < start || date > end) { grid.append(mk("div")); continue; }
+        const key = iso(date);
+        const n = (board[key] || []).length;
+        const full = n >= cfg.maxPerDate;
+        const b = mk("button", "cal-day" + (full ? " full" : "") + (key === cfg.dueDate ? " due" : "") + (key === selected ? " sel" : "") + (key === detailDate ? " detail" : ""));
+        b.type = "button";
+        b.dataset.key = key;
+        b.setAttribute("aria-pressed", String(key === selected));
+        b.setAttribute("aria-label", `${fmt(key)}, ${t("calOf", { n, max: cfg.maxPerDate })}${full ? `, ${t("full")}` : ""}${key === cfg.dueDate ? `, ${t("dueDate")}` : ""}`);
+        b.append(mk("span", "n", String(day)));
+        const dots = mk("span", "dots");
+        for (let i = 0; i < cfg.maxPerDate; i++) dots.append(mk("i", i < n ? "on" : ""));
+        b.append(dots);
+        if (key === cfg.dueDate) b.append(mk("span", "flag", "🍼"));
+        b.addEventListener("click", () => {
+          detailDate = key;
+          const changed = !full && selected !== key;
+          if (!full) selected = key;
+          renderText(); renderBoard();
+          if (changed) { const s = $("selected"); s.classList.remove("flash"); void s.offsetWidth; s.classList.add("flash"); }
+          root.querySelector(`[data-key="${key}"]`)?.focus({ preventScroll: true });
+        });
+        grid.append(b);
+      }
+      wrap.append(grid);
+      root.append(wrap);
+    }
+    renderDetail();
+  }
+
+  function renderDetail() {
+    const box = $("calDetail");
+    box.textContent = "";
+    if (!detailDate) { box.append(mk("p", "muted", t("calHint"))); return; }
+    const names = (board[detailDate] || []).map((g) => g.name);
+    const head = mk("div", "cal-detail-head");
+    head.append(mk("strong", null, t("calWho", { date: fmt(detailDate) })));
+    head.append(mk("span", "chip" + (names.length >= cfg.maxPerDate ? " chip-warn" : ""), names.length >= cfg.maxPerDate ? t("full") : t("calOf", { n: names.length, max: cfg.maxPerDate })));
+    box.append(head);
+    if (!names.length) { box.append(mk("p", "muted", t("calNobody"))); return; }
+    const ul = mk("ul", "cal-names");
+    names.forEach((n) => ul.append(mk("li", null, n)));
+    box.append(ul);
+  }
+
+  $("viewCal").addEventListener("click", () => { view = "cal"; applyView(); });
+  $("viewList").addEventListener("click", () => { view = "list"; applyView(); });
+
+  function renderList() {
     const body = $("rows");
     const settled = body.classList.contains("settled");
     body.textContent = "";
@@ -187,6 +265,7 @@
     ["colDate", "colDay", "colWho"].forEach((k) => ($(k).textContent = t(k)));
   }
 
+  applyView();
   renderTableHead();
   renderText();
   renderBoard();

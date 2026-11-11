@@ -59,7 +59,15 @@
     <section>
       <h2 id="step1"></h2>
       <p id="legend" class="muted"></p>
-      <div class="table-wrap">
+      <div class="view-toggle" role="group" aria-label="View">
+        <button type="button" id="viewCal" aria-pressed="true"></button>
+        <button type="button" id="viewList" aria-pressed="false"></button>
+      </div>
+      <div id="calendar">
+        <div id="calGrid"></div>
+        <div id="calDetail" class="cal-detail" aria-live="polite"></div>
+      </div>
+      <div class="table-wrap" id="listView" hidden>
         <table role="table">
           <thead role="rowgroup"><tr role="row">
             <th scope="col" role="columnheader" id="colDate"></th><th scope="col" role="columnheader" id="colDay"></th>
