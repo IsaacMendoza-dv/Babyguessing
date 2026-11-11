@@ -20,6 +20,9 @@ Sitio en español, inglés y filipino. Máximo 3 personas por fecha.
    - `PARENTS` (opcional, nombres separados por coma, por defecto `Alexa,Ryan`)
 5. Cuando nazca el bebé, abre `/admin.html`, pon el token y la fecha, usa "Ver ganadores" y luego "Enviar correos".
 
+## Alternativa: Vercel
+El repo también funciona en Vercel (`api/` + `vercel.json`). Importa el repo en vercel.com, deja Framework en "Other" y define las mismas variables de entorno del paso 4. Las rutas `/api/guesses` y `/api/announce` funcionan igual.
+
 ## Notas
 - Si cambias el máximo por fecha, actualiza `maxPerDate` en `config.js` y el número 3 en `schema.sql`.
 - Un correo solo puede apostar una vez.
