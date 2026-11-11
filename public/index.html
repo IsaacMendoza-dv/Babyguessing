@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Quiniela Baby</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#4f7cff">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="floaters" aria-hidden="true"><span>🎈</span><span>⭐</span><span>🧸</span><span>🎈</span><span>🧸</span><span>⭐</span></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+  <header>
+    <label class="visually-hidden" for="lang">Language</label>
+    <select id="lang"></select>
+    <div class="baby" aria-hidden="true">🍼</div>
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+    <div class="countdown" id="countdown"></div>
+  </header>
+  <main>
+    <section>
+      <h2 id="step1"></h2>
+      <p id="legend" class="muted"></p>
+      <div class="table-wrap">
+        <table role="table">
+          <thead role="rowgroup"><tr role="row">
+            <th scope="col" role="columnheader" id="colDate"></th><th scope="col" role="columnheader" id="colDay"></th>
+            <th scope="col" role="columnheader" id="colWho"></th><th scope="col" role="columnheader"></th>
+          </tr></thead>
+          <tbody id="rows" role="rowgroup"></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="formSection">
+      <h2 id="step2"></h2>
+      <form id="form" novalidate>
+        <p id="selected" class="selected"></p>
+        <label for="name" id="nameLabel"></label>
+        <input id="name" name="name" required maxlength="80" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+        <label for="email" id="emailLabel"></label>
+        <input id="email" name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next">
+        <button type="submit" id="submit"></button>
+        <p id="msg" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+  <footer id="footer"></footer>
+  <div class="bar" id="bar" hidden>
+    <span id="barText"></span>
+    <button type="button" id="barGo"></button>
+  </div>
+  <script src="config.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/guesses"
+  to = "/.netlify/functions/guesses"
+  status = 200
+
+[[redirects]]
+  from = "/api/announce"
+  to = "/.netlify/functions/announce"
+  status = 200
