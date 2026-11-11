@@ -48,6 +48,12 @@ window.I18N = {
     errDup: "Este correo ya participó.",
     errInvalid: "Revisa tus datos.",
     errGeneric: "Algo salió mal. Intenta de nuevo.",
+    errFix: "Faltan algunos datos. Revisa los campos marcados.",
+    errName: "Escribe tu nombre para poder registrar tu apuesta.",
+    errEmailEmpty: "Escribe tu correo para avisarte si ganas.",
+    errEmailInvalid: "Ese correo no parece válido. Debe verse como nombre@correo.com.",
+    errDate: "Elige primero una fecha en el calendario.",
+    errNetwork: "No pudimos conectarnos. Revisa tu internet e intenta de nuevo.",
     loading: "Cargando…",
     footer: "Desarrollado con amor por Feli y Chayi 💙"
   },
@@ -98,6 +104,12 @@ window.I18N = {
     errDup: "This email already took part.",
     errInvalid: "Please check your details.",
     errGeneric: "Something went wrong. Please try again.",
+    errFix: "Some details are missing. Please check the highlighted fields.",
+    errName: "Please enter your name so we can save your guess.",
+    errEmailEmpty: "Please enter your email so we can tell you if you win.",
+    errEmailInvalid: "That email doesn't look right. It should look like name@email.com.",
+    errDate: "Please pick a date from the calendar first.",
+    errNetwork: "We couldn't connect. Check your internet and try again.",
     loading: "Loading…",
     footer: "Developed with love by Feli and Chayi 💙"
   },
@@ -148,6 +160,12 @@ window.I18N = {
     errDup: "Nakasali na ang email na ito.",
     errInvalid: "Pakisuri ang iyong impormasyon.",
     errGeneric: "May nangyaring mali. Subukan muli.",
+    errFix: "May kulang na impormasyon. Pakisuri ang mga naka-highlight na field.",
+    errName: "Ilagay ang pangalan mo para maitala ang hula mo.",
+    errEmailEmpty: "Ilagay ang email mo para maabisuhan ka namin kung manalo ka.",
+    errEmailInvalid: "Mukhang hindi tama ang email. Dapat ay parang pangalan@email.com.",
+    errDate: "Pumili muna ng petsa sa kalendaryo.",
+    errNetwork: "Hindi kami makakonekta. Tingnan ang internet mo at subukan muli.",
     loading: "Naglo-load…",
     footer: "Binuo nang may pagmamahal nina Feli at Chayi 💙"
   }

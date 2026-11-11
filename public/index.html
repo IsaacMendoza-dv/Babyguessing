@@ -68,6 +68,7 @@
       <h2 id="step1"></h2>
       <p id="legend" class="muted"></p>
       <p id="dueLegend" class="due-legend"></p>
+      <p class="field-error" id="pickError" role="alert" hidden></p>
       <div class="view-row">
         <div class="view-toggle" role="group" aria-label="View">
           <button type="button" id="viewCal" aria-pressed="true"></button>
@@ -93,10 +94,13 @@
       <h2 id="step2"></h2>
       <form id="form" novalidate>
         <p id="selected" class="selected"></p>
+        <p class="field-error" id="dateError" role="alert" hidden></p>
         <label for="name" id="nameLabel"></label>
-        <input id="name" name="name" required maxlength="80" autocomplete="name" autocapitalize="words" enterkeyhint="next">
+        <input id="name" name="name" required maxlength="80" autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-required="true" aria-describedby="nameError">
+        <p class="field-error" id="nameError" role="alert" hidden></p>
         <label for="email" id="emailLabel"></label>
-        <input id="email" name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next">
+        <input id="email" name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" aria-required="true" aria-describedby="emailError">
+        <p class="field-error" id="emailError" role="alert" hidden></p>
         <button type="submit" id="submit"></button>
         <p id="msg" role="status" aria-live="polite"></p>
       </form>

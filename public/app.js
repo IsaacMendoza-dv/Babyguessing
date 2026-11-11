@@ -31,6 +31,8 @@
     $("rulesTitle").textContent = t("rulesTitle");
     for (let i = 1; i <= 6; i++) $("rule" + i).textContent = t("rule" + i);
     $("rulesOk").textContent = t("rulesOk");
+    if (selected && errs.date) showError("date", null);
+    refreshErrors();
     $("nameLabel").textContent = t("name");
     $("emailLabel").textContent = t("email");
     $("submit").textContent = t("submit");
@@ -193,11 +195,60 @@
     renderBoard();
   }
 
+  // ---- Form validation: friendly, per-field messages ----
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const errs = {}; // campo -> clave i18n del error actual (o null)
+  const errEls = { name: ["nameError"], email: ["emailError"], date: ["dateError", "pickError"] };
+  const errInputs = { name: "name", email: "email" };
+
+  function showError(field, key) {
+    errs[field] = key || null;
+    errEls[field].forEach((id) => {
+      const el = $(id);
+      el.textContent = key ? t(key) : "";
+      el.hidden = !key;
+    });
+    const input = errInputs[field] && $(errInputs[field]);
+    if (input) { if (key) input.setAttribute("aria-invalid", "true"); else input.removeAttribute("aria-invalid"); }
+  }
+  function refreshErrors() { Object.entries(errs).forEach(([f, k]) => k && showError(f, k)); }
+
+  const validators = {
+    name: () => ($("name").value.trim() ? null : "errName"),
+    email: () => {
+      const v = $("email").value.trim();
+      return !v ? "errEmailEmpty" : EMAIL_RE.test(v) ? null : "errEmailInvalid";
+    },
+    date: () => (selected ? null : "errDate")
+  };
+  function validate(field) {
+    const key = validators[field]();
+    showError(field, key);
+    return !key;
+  }
+
+  ["name", "email"].forEach((f) => {
+    const input = $(f);
+    input.addEventListener("input", () => { if (errs[f]) validate(f); }); // se corrige en vivo
+    input.addEventListener("blur", () => { if (input.value.trim() || errs[f]) validate(f); }); // al salir, solo si escribió algo
+  });
+
+  function flagMissingDate() {
+    $("step1").scrollIntoView({ behavior: "smooth", block: "start" });
+    [$("calendar"), $("listView")].forEach((el) => { el.classList.remove("needs-date"); void el.offsetWidth; el.classList.add("needs-date"); });
+  }
+
   $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
     setMsg("");
+    const okDate = validate("date"), okName = validate("name"), okEmail = validate("email");
+    if (!okDate || !okName || !okEmail) {
+      setMsg(t("errFix"), "error");
+      if (!okDate) flagMissingDate();
+      else $(okName ? "email" : "name").focus();
+      return;
+    }
     const name = $("name").value.trim(), email = $("email").value.trim();
-    if (!selected || !name || !/^\S+@\S+\.\S+$/.test(email)) return setMsg(t("errInvalid"), "error");
     $("submit").disabled = true;
     const chosen = selected;
     try {
@@ -212,11 +263,22 @@
         confetti();
         $("form").reset();
         selected = null;
-      } else if (data.code === "date_full") setMsg(t("errFull"), "error");
-      else if (data.code === "duplicate") setMsg(t("errDup"), "error");
-      else if (data.code === "invalid") setMsg(t("errInvalid"), "error");
-      else setMsg(t("errGeneric"), "error");
-    } catch { setMsg(t("errGeneric"), "error"); }
+        ["name", "email", "date"].forEach((f) => showError(f, null));
+      } else if (data.code === "date_full") {
+        selected = null;
+        showError("date", "errFull");
+        setMsg(t("errFull"), "error");
+        flagMissingDate();
+      } else if (data.code === "duplicate") {
+        showError("email", "errDup");
+        setMsg(t("errFix"), "error");
+        $("email").focus();
+      } else if (data.code === "invalid") {
+        const map = { name: "errName", email: "errEmailInvalid", date: "errDate" };
+        if (map[data.field]) { showError(data.field, map[data.field]); setMsg(t("errFix"), "error"); }
+        else setMsg(t("errInvalid"), "error");
+      } else setMsg(t("errGeneric"), "error");
+    } catch { setMsg(t("errNetwork"), "error"); }
     $("submit").disabled = false;
     renderText();
     loadBoard();

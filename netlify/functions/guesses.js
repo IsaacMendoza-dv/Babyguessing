@@ -34,9 +34,10 @@ exports.handler = async (event) => {
       const email = String(b.email || "").trim().toLowerCase();
       const guessDate = String(b.guessDate || "");
       const lang = ["es", "en", "fil"].includes(b.lang) ? b.lang : "es";
-      if (!name || name.length > 80 || email.length > 120 || !/^\S+@\S+\.\S+$/.test(email) || !/^\d{4}-\d{2}-\d{2}$/.test(guessDate) || Number.isNaN(Date.parse(guessDate))) {
-        return json(400, { code: "invalid" });
-      }
+      // Cada campo responde con su propio código para que la página muestre el mensaje correcto.
+      if (!name || name.length > 80) return json(400, { code: "invalid", field: "name" });
+      if (email.length > 120 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return json(400, { code: "invalid", field: "email" });
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(guessDate) || Number.isNaN(Date.parse(guessDate))) return json(400, { code: "invalid", field: "date" });
       const r = await sb("guesses", {
         method: "POST",
         headers: { Prefer: "return=minimal" },
