@@ -147,13 +147,14 @@
       .observe($("formSection"));
   }
 
-  const sel = $("lang");
-  Object.entries(window.I18N).forEach(([code, v]) => sel.add(new Option(v.langName, code)));
-  sel.value = lang;
-  sel.addEventListener("change", () => {
-    lang = sel.value;
-    localStorage.setItem("lang", lang);
-    renderTableHead(); renderText(); renderBoard();
+  const names = Object.fromEntries(Object.entries(window.I18N).map(([code, v]) => [code, v.langName]));
+  LangSwitch.init($("lang"), {
+    names, value: lang,
+    onChange: (code) => {
+      lang = code;
+      localStorage.setItem("lang", lang);
+      renderTableHead(); renderText(); renderBoard();
+    }
   });
 
   function renderTableHead() {

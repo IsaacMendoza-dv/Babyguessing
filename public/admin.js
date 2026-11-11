@@ -252,15 +252,16 @@
   $("confirm").addEventListener("close", () => { if ($("confirm").returnValue === "ok") doSend(); });
   $("csv").addEventListener("click", downloadCsv);
 
-  const sel = $("lang");
-  Object.entries(TXT).forEach(([code, v]) => sel.add(new Option(v.langName, code)));
-  sel.value = lang;
-  sel.addEventListener("change", () => {
-    lang = sel.value;
-    localStorage.setItem("lang", lang);
-    renderStatic();
-    renderDashboard();
-    if (pending) showWinners(pending.date, pending.winners);
+  const names = Object.fromEntries(Object.entries(TXT).map(([code, v]) => [code, v.langName]));
+  LangSwitch.init($("lang"), {
+    names, value: lang,
+    onChange: (code) => {
+      lang = code;
+      localStorage.setItem("lang", lang);
+      renderStatic();
+      renderDashboard();
+      if (pending) showWinners(pending.date, pending.winners);
+    }
   });
 
   renderStatic();
