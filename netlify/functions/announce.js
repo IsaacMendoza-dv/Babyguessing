@@ -8,6 +8,7 @@ const json = (statusCode, body) => ({
 });
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const oneLine = (s) => String(s).replace(/[\r\n\t]+/g, " ").trim();
 
 const AND = { es: "y", en: "and", fil: "at" };
 const LOCALE = { es: "es-MX", en: "en-US", fil: "fil-PH" };
@@ -23,33 +24,72 @@ const safeEqual = (a, b) => {
   return x.length === y.length && crypto.timingSafeEqual(x, y);
 };
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== "POST") return json(405, { code: "method" });
-  let b;
-  try { b = JSON.parse(event.body || "{}"); } catch { return json(400, { code: "invalid" }); }
-  if (!ADMIN_TOKEN || !safeEqual(b.token || "", ADMIN_TOKEN)) return json(401, { code: "unauthorized" });
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(b.birthDate || "")) return json(400, { code: "invalid" });
-
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/guesses?select=name,email,lang&guess_date=eq.${b.birthDate}`, {
+const sbGet = (query) =>
+  fetch(`${SUPABASE_URL}/rest/v1/guesses?${query}`, {
     headers: { apikey: SUPABASE_SERVICE_KEY, Authorization: `Bearer ${SUPABASE_SERVICE_KEY}` }
   });
-  if (!r.ok) return json(500, { code: "server" });
-  const winners = await r.json();
 
-  if (b.preview) return json(200, { winners: winners.map((w) => ({ name: w.name, email: w.email })), sent: 0 });
+const emailConfigured = () => Boolean(RESEND_API_KEY && FROM_EMAIL);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  let sent = 0;
-  const failed = [];
-  for (const w of winners) {
-    const lang = templates[w.lang] ? w.lang : "es";
-    const parents = PARENTS.split(",").map((s) => s.trim()).filter(Boolean).join(` ${AND[lang]} `);
-    const tpl = templates[lang](w.name, fmtDate(b.birthDate, lang), parents);
+async function sendOne(w, birthDate) {
+  const lang = templates[w.lang] ? w.lang : "es";
+  const parents = PARENTS.split(",").map((s) => s.trim()).filter(Boolean).join(` ${AND[lang]} `);
+  const tpl = templates[lang](oneLine(w.name), fmtDate(birthDate, lang), parents);
+  try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: FROM_EMAIL, to: [w.email], subject: tpl.subject, text: tpl.text, html: `<p>${esc(tpl.text)}</p>` })
     });
-    if (res.ok) sent++; else failed.push(w.email);
+    if (res.ok) return { email: w.email, ok: true };
+    const data = await res.json().catch(() => ({}));
+    const reason = data.message || `HTTP ${res.status}`;
+    console.error("resend failed", res.status, reason);
+    return { email: w.email, ok: false, error: reason };
+  } catch (e) {
+    console.error("resend request error", e && e.message);
+    return { email: w.email, ok: false, error: "network" };
   }
-  return json(200, { winners: winners.length, sent, failed });
+}
+
+exports.handler = async (event) => {
+  if (event.httpMethod !== "POST") return json(405, { code: "method" });
+  let b;
+  try { b = JSON.parse(event.body || "{}"); } catch { return json(400, { code: "invalid" }); }
+  if (!ADMIN_TOKEN || !safeEqual(b.token || "", ADMIN_TOKEN)) return json(401, { code: "unauthorized" });
+
+  // Compatibilidad: { preview: true } equivale a action "preview".
+  const action = b.action || (b.preview ? "preview" : "send");
+
+  try {
+    if (action === "list") {
+      const r = await sbGet("select=name,email,guess_date,lang,created_at&order=guess_date,created_at");
+      if (!r.ok) { console.error("supabase list failed", r.status, await r.text()); return json(500, { code: "server" }); }
+      return json(200, { guesses: await r.json(), emailConfigured: emailConfigured(), from: FROM_EMAIL || null });
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(b.birthDate || "") || Number.isNaN(Date.parse(b.birthDate))) return json(400, { code: "invalid" });
+
+    const r = await sbGet(`select=name,email,lang&guess_date=eq.${b.birthDate}&order=created_at`);
+    if (!r.ok) { console.error("supabase winners failed", r.status, await r.text()); return json(500, { code: "server" }); }
+    const winners = await r.json();
+
+    if (action === "preview") return json(200, { winners: winners.map((w) => ({ name: w.name, email: w.email, lang: w.lang })) });
+
+    if (action === "send") {
+      if (!emailConfigured()) return json(503, { code: "email_not_configured" });
+      const results = [];
+      for (let i = 0; i < winners.length; i++) {
+        if (i) await sleep(700); // Resend limita a ~2 envíos por segundo
+        results.push(await sendOne(winners[i], b.birthDate));
+      }
+      return json(200, { total: winners.length, sent: results.filter((x) => x.ok).length, results });
+    }
+
+    return json(400, { code: "invalid" });
+  } catch (e) {
+    console.error("announce error", e && e.message);
+    return json(500, { code: "server" });
+  }
 };

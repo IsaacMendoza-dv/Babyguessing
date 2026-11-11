@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="robots" content="noindex">
   <title>Admin</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -12,36 +12,68 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <header><h1>Admin</h1></header>
+<body class="admin">
+  <header>
+    <label class="visually-hidden" for="lang">Language</label>
+    <select id="lang"></select>
+    <div class="baby" aria-hidden="true">🍼</div>
+    <h1 id="title"></h1>
+    <p id="subtitle"></p>
+  </header>
+
   <main>
-    <section>
-      <form id="f">
-        <label for="token">Admin token</label>
-        <input id="token" type="password" required autocomplete="off">
-        <label for="date">Fecha de nacimiento / Birth date</label>
-        <input id="date" type="date" required>
-        <button type="submit" id="preview">Ver ganadores / Preview</button>
-        <button type="submit" id="send">Enviar correos / Send emails</button>
-        <pre id="out" role="status"></pre>
+    <!-- Login -->
+    <section id="loginCard">
+      <form id="loginForm">
+        <label for="token" id="tokenLabel"></label>
+        <input id="token" type="password" required autocomplete="current-password">
+        <button type="submit" id="enter"></button>
+        <p id="loginMsg" class="admin-msg" role="status" aria-live="polite"></p>
       </form>
     </section>
+
+    <!-- Dashboard -->
+    <div id="dash" hidden>
+      <section>
+        <div class="admin-top">
+          <h2 id="summaryTitle"></h2>
+          <button type="button" class="btn-ghost" id="logout"></button>
+        </div>
+        <div class="stats" id="stats"></div>
+        <p id="emailStatus" class="chip"></p>
+      </section>
+
+      <section>
+        <h2 id="winnersTitle"></h2>
+        <form id="winnersForm" class="winners-form">
+          <label for="date" id="dateLabel"></label>
+          <input id="date" type="date" required>
+          <button type="submit" id="search"></button>
+        </form>
+        <div id="winnersOut" aria-live="polite"></div>
+      </section>
+
+      <section>
+        <div class="admin-top">
+          <h2 id="allTitle"></h2>
+          <button type="button" class="btn-ghost" id="csv"></button>
+        </div>
+        <div id="allList"></div>
+      </section>
+    </div>
   </main>
-  <script>
-    let preview = true;
-    document.getElementById("preview").onclick = () => (preview = true);
-    document.getElementById("send").onclick = () => (preview = false);
-    document.getElementById("f").onsubmit = async (e) => {
-      e.preventDefault();
-      const out = document.getElementById("out");
-      if (!preview && !confirm("¿Enviar correos a los ganadores?")) return;
-      const r = await fetch("/api/announce", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: token.value, birthDate: date.value, preview })
-      });
-      out.textContent = JSON.stringify(await r.json(), null, 2);
-    };
-  </script>
+
+  <dialog id="confirm">
+    <form method="dialog">
+      <h3 id="confirmTitle"></h3>
+      <p id="confirmText"></p>
+      <div class="dialog-actions">
+        <button value="cancel" class="btn-ghost" id="cancel"></button>
+        <button value="ok" class="btn-primary" id="ok"></button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="admin.js"></script>
 </body>
 </html>
