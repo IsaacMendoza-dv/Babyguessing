@@ -24,6 +24,7 @@
     ["title", "subtitle", "step1", "step2", "footer"].forEach((k) => ($(k).textContent = t(k)));
     $("legend").textContent = t("legend", { max: cfg.maxPerDate });
     $("banner").alt = t("bannerAlt");
+    $("devPic").alt = t("devAlt");
     $("viewCal").textContent = t("viewCal");
     $("viewList").textContent = t("viewList");
     $("dueLegend").textContent = t("dueLegend", { date: fmt(cfg.dueDate) });

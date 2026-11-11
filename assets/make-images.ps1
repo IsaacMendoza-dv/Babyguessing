@@ -1,4 +1,4 @@
-# Regenera public/banner.jpg y public/og-banner.jpg a partir de assets/daddys.jpeg.
+# Regenera public/banner.jpg y public/og-banner.jpg (desde assets/daddys.jpeg) y public/devs.jpg (desde assets/felicha.jpeg).
 # Uso (desde la raiz del repo): powershell -NoProfile -ExecutionPolicy Bypass -File assets\make-images.ps1
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
@@ -36,3 +36,10 @@ Save-Jpeg $og (Join-Path $pub "og-banner.jpg") 85
 $og.Dispose()
 
 $src.Dispose()
+
+# Firma de los desarrolladores (pie de pagina): 720x480
+$dev = [System.Drawing.Image]::FromFile((Join-Path $PSScriptRoot "felicha.jpeg"))
+$devOut = Render $dev (New-Object System.Drawing.Rectangle(0, 0, $dev.Width, $dev.Height)) 720 480
+Save-Jpeg $devOut (Join-Path $pub "devs.jpg") 85
+$devOut.Dispose()
+$dev.Dispose()

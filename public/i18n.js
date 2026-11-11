@@ -78,7 +78,8 @@ window.I18N = {
     msgErrNoGuess: "Primero envía tu apuesta con ese correo.",
     colorYellow: "Amarillo", colorPink: "Rosa", colorBlue: "Azul", colorGreen: "Verde", colorOrange: "Naranja",
     loading: "Cargando…",
-    footer: "Desarrollado con amor por Feli y Chayi 💙"
+    footer: "Desarrollado con amor por Feli y Chayi 💙",
+    devAlt: "Ilustración de Feli y Chayi, quienes desarrollaron este sitio"
   },
   en: {
     langName: "English",
@@ -157,7 +158,8 @@ window.I18N = {
     msgErrNoGuess: "Please send your guess with that email first.",
     colorYellow: "Yellow", colorPink: "Pink", colorBlue: "Blue", colorGreen: "Green", colorOrange: "Orange",
     loading: "Loading…",
-    footer: "Developed with love by Feli and Chayi 💙"
+    footer: "Developed with love by Feli and Chayi 💙",
+    devAlt: "Illustration of Feli and Chayi, who built this site"
   },
   fil: {
     langName: "Filipino",
@@ -236,6 +238,7 @@ window.I18N = {
     msgErrNoGuess: "Ipadala muna ang hula mo gamit ang email na iyon.",
     colorYellow: "Dilaw", colorPink: "Rosas", colorBlue: "Asul", colorGreen: "Berde", colorOrange: "Kahel",
     loading: "Naglo-load…",
-    footer: "Binuo nang may pagmamahal nina Feli at Chayi 💙"
+    footer: "Binuo nang may pagmamahal nina Feli at Chayi 💙",
+    devAlt: "Ilustrasyon nina Feli at Chayi, na gumawa ng site na ito"
   }
 };
