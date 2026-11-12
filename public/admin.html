@@ -66,8 +66,18 @@
           <h2 id="msgsTitle"></h2>
           <button type="button" class="btn-ghost" id="msgsCsv"></button>
         </div>
+        <div class="msg-tools" id="msgTools">
+          <label class="visually-hidden" for="msgSearch" id="msgSearchLabel"></label>
+          <input id="msgSearch" type="search" maxlength="60" autocomplete="off">
+          <span class="chip" id="msgCount"></span>
+        </div>
         <div class="board settled" id="adminBoard"></div>
         <p id="msgsEmpty" class="board-empty" hidden></p>
+        <nav class="pager" id="pager" hidden>
+          <button type="button" class="pager-btn" id="pagePrev">&#8249;</button>
+          <span id="pageInfo" aria-live="polite"></span>
+          <button type="button" class="pager-btn" id="pageNext">&#8250;</button>
+        </nav>
       </section>
     </div>
   </main>
@@ -83,6 +93,21 @@
     </form>
   </dialog>
 
+  <dialog id="reader" class="reader" aria-label="Message">
+    <div class="reader-stage">
+      <article class="postit yellow" id="readerNote" style="--r:-1.5deg">
+        <p class="postit-text" id="readerText"></p>
+        <p class="postit-sign" id="readerSign"></p>
+        <p class="postit-date" id="readerDate"></p>
+      </article>
+    </div>
+    <div class="reader-nav">
+      <button type="button" class="pager-btn" id="readerPrev">&#8249;</button>
+      <span id="readerCount" aria-live="polite"></span>
+      <button type="button" class="pager-btn" id="readerNext">&#8250;</button>
+    </div>
+    <button type="button" class="btn-ghost reader-close" id="readerClose"></button>
+  </dialog>
   <script src="langswitch.js"></script>
   <script src="admin.js"></script>
 </body>

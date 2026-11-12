@@ -107,12 +107,9 @@
         </div>
       </section>
     </form>
-    <section id="boardSection">
-      <h2 id="boardTitle"></h2>
-      <p id="boardIntro" class="muted"></p>
-      <div class="board" id="board" aria-live="polite"></div>
-      <p id="boardEmpty" class="board-empty" hidden></p>
-      <button type="button" class="btn-ghost view-all" id="viewAllMsgs" hidden></button>
+    <section id="msgCard" class="msg-card">
+      <h2 id="cardTitle"></h2>
+      <p id="cardIntro" class="muted"></p>
       <p id="boardNote" class="admin-msg ok" role="status" aria-live="polite"></p>
       <button type="button" class="btn-primary leave-btn" id="leaveMsg"></button>
     </section>
@@ -152,13 +149,6 @@
         <button type="submit" class="btn-primary" id="msgSend"></button>
       </div>
     </form>
-  </dialog>
-  <dialog id="allMsgs" class="all-msgs" aria-labelledby="allMsgsTitle">
-    <div class="all-head">
-      <h3 id="allMsgsTitle"></h3>
-      <button type="button" class="btn-ghost" id="allMsgsClose"></button>
-    </div>
-    <div class="board settled" id="allBoard"></div>
   </dialog>
   <dialog id="rules" class="rules" aria-labelledby="rulesTitle">
     <h3 id="rulesTitle"></h3>

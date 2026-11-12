@@ -17,7 +17,9 @@
       notConfigured: "El envío de correos no está configurado todavía. Agrega RESEND_API_KEY y FROM_EMAIL en Vercel y redespliega.",
       sandboxHint: "Si usas Resend sin dominio propio, solo puede enviar al correo con el que creaste tu cuenta de Resend.",
       all: "Todas las apuestas", csv: "Descargar CSV", empty: "Aún no hay apuestas.", spots: "{n}/{max} lugares",
-      msgsTitle: "💌 Mensajes para los papás", msgsEmpty: "Aún no hay mensajes.", msgsCsv: "Descargar mensajes (CSV)", del: "Borrar", delConfirm: "¿Seguro?"
+      msgsTitle: "💌 Mensajes para los papás", msgsEmpty: "Aún no hay mensajes.", msgsCsv: "Descargar mensajes (CSV)", del: "Borrar", delConfirm: "¿Seguro?",
+      msgsSearch: "Buscar por nombre o mensaje…", msgsCount: "{n} mensajes", msgsFound: "{n} de {total} mensajes", msgsNoResults: "No hay mensajes con esa búsqueda.",
+      pageInfo: "Página {p} de {n}", prev: "Anterior", next: "Siguiente", closeBtn: "Cerrar"
     },
     en: {
       langName: "English", title: "Admin panel", subtitle: "See how the pool is going and notify the winners",
@@ -33,7 +35,9 @@
       notConfigured: "Email sending is not set up yet. Add RESEND_API_KEY and FROM_EMAIL in Vercel and redeploy.",
       sandboxHint: "With Resend and no custom domain, it can only send to the email you used to sign up for Resend.",
       all: "All guesses", csv: "Download CSV", empty: "No guesses yet.", spots: "{n}/{max} spots",
-      msgsTitle: "💌 Messages for the parents", msgsEmpty: "No messages yet.", msgsCsv: "Download messages (CSV)", del: "Delete", delConfirm: "Sure?"
+      msgsTitle: "💌 Messages for the parents", msgsEmpty: "No messages yet.", msgsCsv: "Download messages (CSV)", del: "Delete", delConfirm: "Sure?",
+      msgsSearch: "Search by name or message…", msgsCount: "{n} messages", msgsFound: "{n} of {total} messages", msgsNoResults: "No messages match your search.",
+      pageInfo: "Page {p} of {n}", prev: "Previous", next: "Next", closeBtn: "Close"
     },
     fil: {
       langName: "Filipino", title: "Admin panel", subtitle: "Tingnan ang takbo ng hulaan at abisuhan ang mga nanalo",
@@ -49,7 +53,9 @@
       notConfigured: "Hindi pa naka-set up ang pagpapadala ng email. Idagdag ang RESEND_API_KEY at FROM_EMAIL sa Vercel at i-redeploy.",
       sandboxHint: "Kung walang sariling domain sa Resend, sa email lang na ginamit mo sa pag-sign up ito makakapagpadala.",
       all: "Lahat ng hula", csv: "I-download ang CSV", empty: "Wala pang hula.", spots: "{n}/{max} na lugar",
-      msgsTitle: "💌 Mga mensahe para sa mga magulang", msgsEmpty: "Wala pang mensahe.", msgsCsv: "I-download ang mga mensahe (CSV)", del: "Burahin", delConfirm: "Sigurado ka?"
+      msgsTitle: "💌 Mga mensahe para sa mga magulang", msgsEmpty: "Wala pang mensahe.", msgsCsv: "I-download ang mga mensahe (CSV)", del: "Burahin", delConfirm: "Sigurado ka?",
+      msgsSearch: "Maghanap ayon sa pangalan o mensahe…", msgsCount: "{n} mensahe", msgsFound: "{n} sa {total} na mensahe", msgsNoResults: "Walang mensaheng tumugma sa hinahanap mo.",
+      pageInfo: "Pahina {p} ng {n}", prev: "Nakaraan", next: "Susunod", closeBtn: "Isara"
     }
   };
 
@@ -87,6 +93,11 @@
     $("csv").textContent = t("csv");
     $("msgsTitle").textContent = t("msgsTitle");
     $("msgsCsv").textContent = t("msgsCsv");
+    $("msgSearch").placeholder = t("msgsSearch");
+    $("msgSearchLabel").textContent = t("msgsSearch");
+    ["pagePrev", "readerPrev"].forEach((id) => $(id).setAttribute("aria-label", t("prev")));
+    ["pageNext", "readerNext"].forEach((id) => $(id).setAttribute("aria-label", t("next")));
+    $("readerClose").textContent = t("closeBtn");
     $("confirmTitle").textContent = t("confirmTitle");
     $("cancel").textContent = t("cancel");
     $("ok").textContent = t("confirm");
@@ -261,9 +272,19 @@
   $("confirm").addEventListener("close", () => { if ($("confirm").returnValue === "ok") doSend(); });
   $("csv").addEventListener("click", downloadCsv);
 
-  // ---- Mensajes de amor (pizarron de los papas) ----
+  // ---- Mensajes de amor: pizarron privado de los papas (paginas, busqueda y modo lectura) ----
   let adminMsgs = [];
+  let msgQuery = "";
+  let msgPage = 0;
+  let readerIndex = 0;
   const hashId = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
+  const norm = (s) => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const pageSize = () => (window.matchMedia("(max-width:640px)").matches ? 4 : 8);
+  const filtered = () => {
+    const q = norm(msgQuery.trim());
+    return q ? adminMsgs.filter((m) => norm(`${m.name} ${m.message}`).includes(q)) : adminMsgs;
+  };
+  const pageCount = () => Math.max(1, Math.ceil(filtered().length / pageSize()));
 
   async function loadAdminMessages() {
     const { status, json } = await api({ action: "messages" });
@@ -271,24 +292,50 @@
     renderAdminMessages();
   }
 
-  function renderAdminMessages() {
+  function renderAdminMessages(animate = false) {
     const box = $("adminBoard"), empty = $("msgsEmpty");
-    box.textContent = "";
-    empty.textContent = t("msgsEmpty");
-    empty.hidden = adminMsgs.length > 0;
-    box.hidden = adminMsgs.length === 0;
+    const list = filtered();
+    msgPage = Math.max(0, Math.min(msgPage, pageCount() - 1));
+
     $("msgsCsv").disabled = adminMsgs.length === 0;
-    adminMsgs.forEach((m) => {
+    $("msgTools").hidden = adminMsgs.length === 0;
+    $("msgCount").textContent = msgQuery.trim()
+      ? t("msgsFound", { n: list.length, total: adminMsgs.length })
+      : t("msgsCount", { n: adminMsgs.length });
+
+    box.textContent = "";
+    box.classList.toggle("settled", !animate);
+    empty.hidden = list.length > 0;
+    empty.textContent = adminMsgs.length ? t("msgsNoResults") : t("msgsEmpty");
+    box.hidden = list.length === 0;
+
+    const pages = pageCount();
+    $("pager").hidden = pages <= 1;
+    $("pageInfo").textContent = t("pageInfo", { p: msgPage + 1, n: pages });
+    $("pagePrev").disabled = msgPage === 0;
+    $("pageNext").disabled = msgPage >= pages - 1;
+
+    const start = msgPage * pageSize();
+    list.slice(start, start + pageSize()).forEach((m, i) => {
       const note = el("article", `postit ${m.color || "yellow"}`);
       note.style.setProperty("--r", `${(Math.abs(hashId(m.id)) % 7) - 3}deg`);
+      if (animate) note.style.animationDelay = `${i * 60}ms`;
+      note.tabIndex = 0;
+      note.setAttribute("role", "button");
+      note.setAttribute("aria-label", `${m.name}: ${m.message}`);
       note.append(
         el("p", "postit-text", m.message),
         el("p", "postit-sign", `— ${m.name}`),
         el("p", "postit-date", new Date(m.created_at).toLocaleDateString(locale(), { dateStyle: "medium" }))
       );
+      const open = () => openReader(start + i);
+      note.addEventListener("click", open);
+      note.addEventListener("keydown", (e) => { if (e.target === note && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); open(); } });
+
       const del = el("button", "postit-del", t("del"));
       del.type = "button";
-      del.addEventListener("click", async () => {
+      del.addEventListener("click", async (e) => {
+        e.stopPropagation();
         if (!del.dataset.armed) { // primer clic: pedir confirmacion
           del.dataset.armed = "1";
           del.textContent = t("delConfirm");
@@ -305,6 +352,41 @@
       box.append(note);
     });
   }
+
+  $("msgSearch").addEventListener("input", (e) => { msgQuery = e.target.value; msgPage = 0; renderAdminMessages(true); });
+  $("pagePrev").addEventListener("click", () => { msgPage -= 1; renderAdminMessages(true); $("adminBoard").scrollIntoView({ behavior: "smooth", block: "nearest" }); });
+  $("pageNext").addEventListener("click", () => { msgPage += 1; renderAdminMessages(true); $("adminBoard").scrollIntoView({ behavior: "smooth", block: "nearest" }); });
+
+  // ---- Modo lectura: un mensaje a la vez, en grande ----
+  const reader = $("reader");
+  function showReader() {
+    const list = filtered(), m = list[readerIndex];
+    if (!m) { if (reader.open) reader.close(); return; }
+    const note = $("readerNote");
+    note.className = `postit ${m.color || "yellow"}`;
+    $("readerText").textContent = m.message;
+    $("readerSign").textContent = `— ${m.name}`;
+    $("readerDate").textContent = new Date(m.created_at).toLocaleDateString(locale(), { dateStyle: "long" });
+    $("readerCount").textContent = `${readerIndex + 1} / ${list.length}`;
+    note.classList.remove("flip"); void note.offsetWidth; note.classList.add("flip");
+  }
+  function openReader(i) { readerIndex = i; showReader(); if (!reader.open) reader.showModal(); }
+  function stepReader(d) {
+    const n = filtered().length;
+    if (!n) return;
+    readerIndex = (readerIndex + d + n) % n;
+    showReader();
+  }
+  $("readerPrev").addEventListener("click", () => stepReader(-1));
+  $("readerNext").addEventListener("click", () => stepReader(1));
+  $("readerClose").addEventListener("click", () => reader.close());
+  reader.addEventListener("click", (e) => { if (e.target === reader) reader.close(); });
+  reader.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") { e.preventDefault(); stepReader(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); stepReader(1); }
+  });
+  // Al cerrar, el tablero se coloca en la pagina del ultimo mensaje leido.
+  reader.addEventListener("close", () => { msgPage = Math.floor(readerIndex / pageSize()); renderAdminMessages(); });
 
   $("msgsCsv").addEventListener("click", () => {
     const rows = [["date", "name", "message", "color", "language"], ...adminMsgs.map((m) => [m.created_at, m.name, m.message, m.color, m.lang])];

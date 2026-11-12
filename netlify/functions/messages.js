@@ -1,5 +1,5 @@
-// Pizarrón de mensajes: GET lista pública, POST crea un mensaje (solo quien ya envió su apuesta).
-const { SUPABASE_URL, SUPABASE_SERVICE_KEY, MESSAGES_PUBLIC } = process.env;
+// Mensajes para los papás: POST crea un mensaje (solo quien ya envió su apuesta). No hay lectura pública.
+const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
 
 const COLORS = ["yellow", "pink", "blue", "green", "orange"];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -30,12 +30,8 @@ const clean = (value, max, keepNewlines = false) => {
 
 exports.handler = async (event) => {
   try {
-    if (event.httpMethod === "GET") {
-      if (MESSAGES_PUBLIC === "false") return json(200, { messages: [], hidden: true });
-      const r = await sb("messages?select=id,name,message,color,created_at&order=created_at.desc&limit=100");
-      if (!r.ok) { console.error("messages GET failed", r.status, await r.text()); return json(500, { code: "server" }); }
-      return json(200, { messages: await r.json(), hidden: false });
-    }
+    // Los mensajes son privados: solo los papás los leen, desde /admin (netlify/functions/announce.js, con clave).
+    // Esta ruta publica solo permite ESCRIBIR un mensaje (POST).
 
     if (event.httpMethod === "POST") {
       let b;

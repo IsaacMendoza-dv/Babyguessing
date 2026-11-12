@@ -289,65 +289,8 @@
     loadBoard();
   });
 
-  // ---- Message board (post-its) ----
-  let msgs = [];
-  let boardHidden = false;
-  let boardError = false;
-  let freshId = null;
+  // ---- Message for the parents (private: only they read it, from /admin) ----
   const hasGuess = () => Boolean(localStorage.getItem("guessEmail"));
-  const hashId = (s) => [...String(s)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 7);
-
-  function postitEl(m, { fresh = false, delay = 0 } = {}) {
-    const el = mk("article", `postit ${m.color || "yellow"}` + (fresh ? " fresh" : ""));
-    el.style.setProperty("--r", `${(Math.abs(hashId(m.id)) % 7) - 3}deg`); // inclinacion entre -3 y 3 grados
-    if (delay) el.style.animationDelay = `${delay}ms`;
-    el.append(mk("p", "postit-text", m.message), mk("p", "postit-sign", `— ${m.name}`));
-    return el;
-  }
-
-  function renderMessages() {
-    const box = $("board"), empty = $("boardEmpty");
-    box.textContent = "";
-    $("viewAllMsgs").hidden = true;
-    if (boardHidden || boardError || !msgs.length) {
-      box.hidden = true;
-      empty.hidden = false;
-      empty.textContent = boardHidden ? t("boardHidden") : boardError ? t("boardLoadError") : t("boardEmpty");
-      return;
-    }
-    empty.hidden = true;
-    box.hidden = false;
-    // En la pagina solo se ven los mas recientes; el resto esta en "Ver todos".
-    const limit = window.matchMedia("(max-width:640px)").matches ? 4 : 6;
-    msgs.slice(0, limit).forEach((m, i) => box.append(postitEl(m, { fresh: m.id === freshId, delay: Math.min(i * 60, 600) })));
-    box.classList.add("settled");
-    const more = msgs.length > limit;
-    $("viewAllMsgs").hidden = !more;
-    if (more) $("viewAllMsgs").textContent = t("boardAll", { n: msgs.length });
-  }
-
-  const allDialog = $("allMsgs");
-  function openAllMessages() {
-    const box = $("allBoard");
-    box.textContent = "";
-    msgs.forEach((m) => box.append(postitEl(m)));
-    allDialog.showModal();
-  }
-  $("viewAllMsgs").addEventListener("click", openAllMessages);
-  $("allMsgsClose").addEventListener("click", () => allDialog.close());
-  allDialog.addEventListener("click", (e) => { if (e.target === allDialog) allDialog.close(); }); // clic fuera = cerrar
-
-  async function loadMessages() {
-    try {
-      const r = await fetch("/api/messages");
-      if (!r.ok) throw new Error("bad status");
-      const data = await r.json();
-      msgs = data.messages || [];
-      boardHidden = Boolean(data.hidden);
-      boardError = false;
-    } catch { msgs = []; boardError = true; }
-    renderMessages();
-  }
 
   const msgDialog = $("msgDialog");
   const COLOR_KEYS = { yellow: "colorYellow", pink: "colorPink", blue: "colorBlue", green: "colorGreen", orange: "colorOrange" };
@@ -420,14 +363,12 @@
       const data = await r.json().catch(() => ({}));
       if (r.ok) {
         localStorage.setItem("guessName", sign);
-        if (!boardHidden && data.message) { msgs.unshift(data.message); freshId = data.message.id; boardError = false; }
         $("msgText").value = "";
         msgDialog.close();
-        renderMessages();
         const note = $("boardNote");
         note.className = "admin-msg ok";
-        note.textContent = boardHidden ? t("msgThanksHidden") : t("msgThanks");
-        $("boardSection").scrollIntoView({ behavior: "smooth", block: "start" });
+        note.textContent = t("msgThanksHidden");
+        $("msgCard").scrollIntoView({ behavior: "smooth", block: "start" });
         confetti();
       } else if (r.status === 403) {
         localStorage.removeItem("guessEmail");
@@ -441,12 +382,9 @@
   });
 
   function renderMessageTexts() {
-    $("boardTitle").textContent = t("boardTitle");
-    $("boardIntro").textContent = t("boardIntro");
+    $("cardTitle").textContent = t("cardTitle");
+    $("cardIntro").textContent = t("cardIntro");
     $("leaveMsg").textContent = t("msgLeave");
-    $("allMsgsTitle").textContent = t("boardTitle");
-    $("allMsgsClose").textContent = t("closeBtn");
-    if (!$("viewAllMsgs").hidden) $("viewAllMsgs").textContent = t("boardAll", { n: msgs.length });
     $("msgDialogTitle").textContent = t("msgDialogTitle");
     $("msgDialogSub").textContent = t("msgDialogSub");
     $("msgTextLabel").textContent = t("msgTextLabel");
@@ -474,7 +412,7 @@
     onChange: (code) => {
       lang = code;
       localStorage.setItem("lang", lang);
-      renderTableHead(); renderText(); renderBoard(); renderMessages();
+      renderTableHead(); renderText(); renderBoard();
     }
   });
 
@@ -503,7 +441,7 @@
     lang = b.dataset.code;
     localStorage.setItem("lang", lang);
     switcher.set(lang);
-    renderTableHead(); renderText(); renderBoard(); renderMessages();
+    renderTableHead(); renderText(); renderBoard();
     welcome.classList.add("leaving");
     setTimeout(() => {
       document.documentElement.classList.remove("no-lang");
@@ -524,5 +462,4 @@
   renderText();
   renderBoard();
   loadBoard();
-  loadMessages();
 })();
