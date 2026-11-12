@@ -64,52 +64,55 @@
     <div class="countdown" id="countdown"></div>
   </header>
   <main>
-    <section>
-      <h2 id="step1"></h2>
-      <p id="legend" class="muted"></p>
-      <p id="dueLegend" class="due-legend"></p>
-      <p class="field-error" id="pickError" role="alert" hidden></p>
-      <div class="view-row">
-        <div class="view-toggle" role="group" aria-label="View">
-          <button type="button" id="viewCal" aria-pressed="true"></button>
-          <button type="button" id="viewList" aria-pressed="false"></button>
-        </div>
-        <button type="button" class="btn-ghost" id="rulesBtn"></button>
-      </div>
-      <div id="calendar">
-        <div id="calGrid"></div>
-        <div id="calDetail" class="cal-detail" aria-live="polite"></div>
-      </div>
-      <div class="table-wrap" id="listView" hidden>
-        <table role="table">
-          <thead role="rowgroup"><tr role="row">
-            <th scope="col" role="columnheader" id="colDate"></th><th scope="col" role="columnheader" id="colDay"></th>
-            <th scope="col" role="columnheader" id="colWho"></th><th scope="col" role="columnheader"></th>
-          </tr></thead>
-          <tbody id="rows" role="rowgroup"></tbody>
-        </table>
-      </div>
-    </section>
-    <section id="formSection">
-      <h2 id="step2"></h2>
-      <form id="form" novalidate>
-        <p id="selected" class="selected"></p>
-        <p class="field-error" id="dateError" role="alert" hidden></p>
+    <form id="form" novalidate>
+      <section id="formSection">
+        <h2 id="step2"></h2>
         <label for="name" id="nameLabel"></label>
         <input id="name" name="name" required maxlength="80" autocomplete="name" autocapitalize="words" enterkeyhint="next" aria-required="true" aria-describedby="nameError">
         <p class="field-error" id="nameError" role="alert" hidden></p>
         <label for="email" id="emailLabel"></label>
-        <input id="email" name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="next" aria-required="true" aria-describedby="emailError">
+        <input id="email" name="email" type="email" required maxlength="120" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" enterkeyhint="done" aria-required="true" aria-describedby="emailError">
         <p class="field-error" id="emailError" role="alert" hidden></p>
-        <button type="submit" id="submit"></button>
-        <p id="msg" role="status" aria-live="polite"></p>
-      </form>
-    </section>
+      </section>
+      <section id="dateSection">
+        <h2 id="step1"></h2>
+        <p id="legend" class="muted"></p>
+        <p id="dueLegend" class="due-legend"></p>
+        <p class="field-error" id="pickError" role="alert" hidden></p>
+        <div class="view-row">
+          <div class="view-toggle" role="group" aria-label="View">
+            <button type="button" id="viewCal" aria-pressed="true"></button>
+            <button type="button" id="viewList" aria-pressed="false"></button>
+          </div>
+          <button type="button" class="btn-ghost" id="rulesBtn"></button>
+        </div>
+        <div id="calendar">
+          <div id="calGrid"></div>
+          <div id="calDetail" class="cal-detail" aria-live="polite"></div>
+        </div>
+        <div class="table-wrap" id="listView" hidden>
+          <table role="table">
+            <thead role="rowgroup"><tr role="row">
+              <th scope="col" role="columnheader" id="colDate"></th><th scope="col" role="columnheader" id="colDay"></th>
+              <th scope="col" role="columnheader" id="colWho"></th><th scope="col" role="columnheader"></th>
+            </tr></thead>
+            <tbody id="rows" role="rowgroup"></tbody>
+          </table>
+        </div>
+        <div class="submit-area" id="submitArea">
+          <p id="selected" class="selected"></p>
+          <p class="field-error" id="dateError" role="alert" hidden></p>
+          <button type="submit" id="submit"></button>
+          <p id="msg" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </form>
     <section id="boardSection">
       <h2 id="boardTitle"></h2>
       <p id="boardIntro" class="muted"></p>
       <div class="board" id="board" aria-live="polite"></div>
       <p id="boardEmpty" class="board-empty" hidden></p>
+      <button type="button" class="btn-ghost view-all" id="viewAllMsgs" hidden></button>
       <p id="boardNote" class="admin-msg ok" role="status" aria-live="polite"></p>
       <button type="button" class="btn-primary leave-btn" id="leaveMsg"></button>
     </section>
@@ -149,6 +152,13 @@
         <button type="submit" class="btn-primary" id="msgSend"></button>
       </div>
     </form>
+  </dialog>
+  <dialog id="allMsgs" class="all-msgs" aria-labelledby="allMsgsTitle">
+    <div class="all-head">
+      <h3 id="allMsgsTitle"></h3>
+      <button type="button" class="btn-ghost" id="allMsgsClose"></button>
+    </div>
+    <div class="board settled" id="allBoard"></div>
   </dialog>
   <dialog id="rules" class="rules" aria-labelledby="rulesTitle">
     <h3 id="rulesTitle"></h3>

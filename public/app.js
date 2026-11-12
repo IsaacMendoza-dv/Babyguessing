@@ -41,7 +41,7 @@
     $("selected").textContent = selected ? t("selected", { date: fmt(selected) }) : t("none");
     document.title = t("title");
     $("barText").textContent = selected ? fmt(selected) : "";
-    $("barGo").textContent = t("continue");
+    $("barGo").textContent = t("barSend");
     $("bar").hidden = !selected || formVisible;
     renderCountdown();
   }
@@ -308,6 +308,7 @@
   function renderMessages() {
     const box = $("board"), empty = $("boardEmpty");
     box.textContent = "";
+    $("viewAllMsgs").hidden = true;
     if (boardHidden || boardError || !msgs.length) {
       box.hidden = true;
       empty.hidden = false;
@@ -316,9 +317,25 @@
     }
     empty.hidden = true;
     box.hidden = false;
-    msgs.forEach((m, i) => box.append(postitEl(m, { fresh: m.id === freshId, delay: Math.min(i * 60, 600) })));
+    // En la pagina solo se ven los mas recientes; el resto esta en "Ver todos".
+    const limit = window.matchMedia("(max-width:640px)").matches ? 4 : 6;
+    msgs.slice(0, limit).forEach((m, i) => box.append(postitEl(m, { fresh: m.id === freshId, delay: Math.min(i * 60, 600) })));
     box.classList.add("settled");
+    const more = msgs.length > limit;
+    $("viewAllMsgs").hidden = !more;
+    if (more) $("viewAllMsgs").textContent = t("boardAll", { n: msgs.length });
   }
+
+  const allDialog = $("allMsgs");
+  function openAllMessages() {
+    const box = $("allBoard");
+    box.textContent = "";
+    msgs.forEach((m) => box.append(postitEl(m)));
+    allDialog.showModal();
+  }
+  $("viewAllMsgs").addEventListener("click", openAllMessages);
+  $("allMsgsClose").addEventListener("click", () => allDialog.close());
+  allDialog.addEventListener("click", (e) => { if (e.target === allDialog) allDialog.close(); }); // clic fuera = cerrar
 
   async function loadMessages() {
     try {
@@ -427,6 +444,9 @@
     $("boardTitle").textContent = t("boardTitle");
     $("boardIntro").textContent = t("boardIntro");
     $("leaveMsg").textContent = t("msgLeave");
+    $("allMsgsTitle").textContent = t("boardTitle");
+    $("allMsgsClose").textContent = t("closeBtn");
+    if (!$("viewAllMsgs").hidden) $("viewAllMsgs").textContent = t("boardAll", { n: msgs.length });
     $("msgDialogTitle").textContent = t("msgDialogTitle");
     $("msgDialogSub").textContent = t("msgDialogSub");
     $("msgTextLabel").textContent = t("msgTextLabel");
@@ -441,13 +461,11 @@
   }
 
   let formVisible = false;
-  $("barGo").addEventListener("click", () => {
-    $("formSection").scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => $("name").focus({ preventScroll: true }), 500);
-  });
+  // La barra fija envía la apuesta; si falta algo, la validación lleva al campo con error.
+  $("barGo").addEventListener("click", () => $("form").requestSubmit());
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(([e]) => { formVisible = e.isIntersecting; $("bar").hidden = !selected || formVisible; }, { threshold: 0.35 })
-      .observe($("formSection"));
+      .observe($("submitArea"));
   }
 
   const names = Object.fromEntries(Object.entries(window.I18N).map(([code, v]) => [code, v.langName]));
